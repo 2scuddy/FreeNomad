@@ -1,0 +1,170 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and profiles
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  image         String?
+  emailVerified DateTime?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Profile information
+  bio           String?
+  location      String?
+  website       String?
+  isAdmin       Boolean   @default(false)
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  reviews       Review[]
+  
+  @@map("users")
+}
+
+// NextAuth.js Account model
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// NextAuth.js Session model
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+// NextAuth.js Verification Token model
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+// City model - main entity
+model City {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  country     String
+  region      String?
+  latitude    Float
+  longitude   Float
+  population  Int?
+  timezone    String?
+  
+  // Nomad-specific data
+  costOfLiving    Int?     // Monthly cost in USD
+  internetSpeed   Float?   // Mbps
+  safetyRating    Float?   // 1-10 scale
+  walkability     Float?   // 1-10 scale
+  nightlife       Float?   // 1-10 scale
+  culture         Float?   // 1-10 scale
+  weather         Float?   // 1-10 scale
+  
+  // Content
+  description     String?  @db.Text
+  shortDescription String?
+  imageUrl        String?
+  imageAttribution String?
+  
+  // Metadata
+  featured        Boolean  @default(false)
+  verified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  reviews         Review[]
+  
+  // Indexes for performance optimization
+  @@index([featured, verified])
+  @@index([country])
+  @@index([costOfLiving])
+  @@index([internetSpeed])
+  @@index([safetyRating])
+  @@index([walkability])
+  @@index([createdAt])
+  @@index([name, country])
+  @@index([featured, costOfLiving, internetSpeed])
+  @@map("cities")
+}
+
+// Review model for user feedback
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1-5 stars
+  title     String
+  content   String   @db.Text
+  
+  // Specific ratings
+  internetRating    Int? // 1-5 stars
+  costRating        Int? // 1-5 stars
+  safetyRating      Int? // 1-5 stars
+  funRating         Int? // 1-5 stars
+  
+  // Metadata
+  helpful           Int      @default(0)
+  verified          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  userId            String
+  cityId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city              City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  
+  // Constraints
+  @@unique([userId, cityId]) // One review per user per city
+  @@index([cityId])
+  @@index([rating])
+  @@index([createdAt])
+  @@map("reviews")
+}
