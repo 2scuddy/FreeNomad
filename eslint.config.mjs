@@ -26,11 +26,13 @@ const eslintConfig = [
       ".turbo/**",
       "**/*.wasm.js",
       "**/runtime/**",
+      "public/sw.js",
+      "**/*.min.js",
     ],
   },
   // Extend configurations
   ...compat.extends("next/core-web-vitals", "next/typescript", "prettier"),
-  // Custom rules
+  // Custom rules for source files
   {
     files: ["src/**/*.{js,jsx,ts,tsx}"],
     plugins: {
@@ -38,9 +40,18 @@ const eslintConfig = [
     },
     rules: {
       "prettier/prettier": "error",
-      "@typescript-eslint/no-unused-vars": "warn", // Changed to warn
+      "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-require-imports": "off", // Disable for generated files
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+  // Rules for test and config files
+  {
+    files: ["**/*.test.{js,jsx,ts,tsx}", "**/*.spec.{js,jsx,ts,tsx}", "jest.*.js", "*.config.{js,mjs}"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
     },
   },
 ];

@@ -10,7 +10,8 @@ export default function CityNotFound() {
           <MapPin className="h-24 w-24 text-muted-foreground mx-auto" />
           <h1 className="text-4xl font-bold">City Not Found</h1>
           <p className="text-lg text-muted-foreground">
-            The city you're looking for doesn't exist or may have been removed.
+            The city you&apos;re looking for doesn&apos;t exist or may have been
+            removed.
           </p>
         </div>
 
