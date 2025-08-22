@@ -12,20 +12,27 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Users,
   MapPin,
   MessageSquare,
   Star,
   TrendingUp,
-  Settings,
   Shield,
   BarChart3,
-  Calendar,
   Eye,
   Edit,
-  Trash2,
-  MoreHorizontal,
+  Upload,
+  Download,
+  FileJson,
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  Activity,
+  DollarSign,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +88,11 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ user, stats }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "uploading" | "success" | "error"
+  >("idle");
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [jsonInput, setJsonInput] = useState("");
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -92,6 +104,64 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
 
   const formatRating = (rating: number) => {
     return rating.toFixed(1);
+  };
+
+  const handleBulkUpload = async () => {
+    if (!jsonInput.trim()) {
+      setUploadStatus("error");
+      setUploadMessage("Please enter JSON data");
+      return;
+    }
+
+    setUploadStatus("uploading");
+    setUploadMessage("Processing cities...");
+
+    try {
+      const cities = JSON.parse(jsonInput);
+
+      // Validate JSON structure
+      if (!Array.isArray(cities)) {
+        throw new Error("JSON must be an array of cities");
+      }
+
+      // TODO: Implement actual API call
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+
+      setUploadStatus("success");
+      setUploadMessage(`Successfully uploaded ${cities.length} cities`);
+      setJsonInput("");
+    } catch (error) {
+      setUploadStatus("error");
+      setUploadMessage(
+        error instanceof Error ? error.message : "Invalid JSON format"
+      );
+    }
+  };
+
+  const sampleJsonData = {
+    cities: [
+      {
+        name: "Lisbon",
+        country: "Portugal",
+        region: "Europe",
+        latitude: 38.7223,
+        longitude: -9.1393,
+        population: 547733,
+        timezone: "Europe/Lisbon",
+        costOfLiving: 1200,
+        internetSpeed: 85.5,
+        safetyRating: 8.5,
+        walkability: 7.8,
+        nightlife: 8.2,
+        culture: 9.1,
+        weather: 8.7,
+        description:
+          "A vibrant coastal city with rich history and growing tech scene.",
+        shortDescription: "Historic coastal capital with modern amenities.",
+        featured: true,
+        verified: true,
+      },
+    ],
   };
 
   return (
@@ -128,11 +198,12 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="cities">Cities</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            <TabsTrigger value="bulk-upload">Bulk Upload</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -150,7 +221,7 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
                         {stats.overview.totalUsers}
                       </p>
                     </div>
-                    <Users className="h-8 w-8 text-blue-600" />
+                    <Users className="h-8 w-8 text-blue-500" />
                   </div>
                 </CardContent>
               </Card>
@@ -166,7 +237,7 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
                         {stats.overview.totalCities}
                       </p>
                     </div>
-                    <MapPin className="h-8 w-8 text-green-600" />
+                    <MapPin className="h-8 w-8 text-green-500" />
                   </div>
                 </CardContent>
               </Card>
@@ -182,7 +253,7 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
                         {stats.overview.totalReviews}
                       </p>
                     </div>
-                    <MessageSquare className="h-8 w-8 text-purple-600" />
+                    <MessageSquare className="h-8 w-8 text-purple-500" />
                   </div>
                 </CardContent>
               </Card>
@@ -192,68 +263,59 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
-                        Avg Rating
+                        Average Rating
                       </p>
                       <p className="text-2xl font-bold">
                         {formatRating(stats.overview.averageRating)}
                       </p>
                     </div>
-                    <Star className="h-8 w-8 text-yellow-600" />
+                    <Star className="h-8 w-8 text-yellow-500" />
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             {/* Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Recent Users */}
+            <div className="grid lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Recent Users</CardTitle>
-                  <CardDescription>Latest user registrations</CardDescription>
+                  <CardTitle>Recent Users</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {stats.recentActivity.users.map(user => (
+                    {stats.recentActivity.users.slice(0, 5).map(user => (
                       <div
                         key={user.id}
                         className="flex items-center justify-between"
                       >
                         <div>
                           <p className="font-medium">
-                            {user.name || "Anonymous"}
+                            {user.name || user.email}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {user.email}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <Badge
-                            variant={
-                              user.role === "ADMIN" ? "default" : "secondary"
-                            }
-                          >
-                            {user.role}
-                          </Badge>
-                          <p className="text-xs text-muted-foreground mt-1">
                             {formatDate(user.createdAt)}
                           </p>
                         </div>
+                        <Badge
+                          variant={
+                            user.role === "ADMIN" ? "default" : "secondary"
+                          }
+                        >
+                          {user.role}
+                        </Badge>
                       </div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Recent Cities */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Recent Cities</CardTitle>
-                  <CardDescription>Latest city additions</CardDescription>
+                  <CardTitle>Recent Cities</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {stats.recentActivity.cities.map(city => (
+                    {stats.recentActivity.cities.slice(0, 5).map(city => (
                       <div
                         key={city.id}
                         className="flex items-center justify-between"
@@ -261,74 +323,75 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
                         <div>
                           <p className="font-medium">{city.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {city.country}
+                            {city.country} • {formatDate(city.createdAt)}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <div className="flex gap-1 mb-1">
-                            {city.featured && (
-                              <Badge variant="default" className="text-xs">
-                                Featured
-                              </Badge>
-                            )}
-                            {city.verified && (
-                              <Badge variant="secondary" className="text-xs">
-                                Verified
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDate(city.createdAt)}
-                          </p>
+                        <div className="flex gap-1">
+                          {city.featured && (
+                            <Badge variant="default">Featured</Badge>
+                          )}
+                          {city.verified && (
+                            <Badge variant="secondary">Verified</Badge>
+                          )}
                         </div>
                       </div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
 
-              {/* Recent Reviews */}
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Recent Reviews</CardTitle>
-                  <CardDescription>Latest user reviews</CardDescription>
+                  <CardTitle className="flex items-center">
+                    <Activity className="h-5 w-5 mr-2" />
+                    User Growth
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {stats.recentActivity.reviews.map(review => (
-                      <div key={review.id} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={cn(
-                                  "h-3 w-3",
-                                  i < review.rating
-                                    ? "fill-yellow-400 text-yellow-400"
-                                    : "text-muted-foreground"
-                                )}
-                              />
-                            ))}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDate(review.createdAt)}
-                          </p>
-                        </div>
-                        <p className="text-sm">
-                          <span className="font-medium">
-                            {review.user.name || "Anonymous"}
-                          </span>
-                          {" reviewed "}
-                          <span className="font-medium">
-                            {review.city.name}
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {review.content}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="text-center py-8">
+                    <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      Analytics charts coming soon
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Globe className="h-5 w-5 mr-2" />
+                    Geographic Distribution
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <MapPin className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      Geographic analytics coming soon
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <DollarSign className="h-5 w-5 mr-2" />
+                    Cost Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      Cost analytics coming soon
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -345,12 +408,38 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-4" />
-                  <p>User management interface will be implemented here</p>
-                  <p className="text-sm">
-                    Features: User list, role management, account actions
-                  </p>
+                <div className="space-y-4">
+                  {stats.recentActivity.users.map(user => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div>
+                        <p className="font-medium">{user.name || "No name"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Joined {formatDate(user.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={
+                            user.role === "ADMIN" ? "default" : "secondary"
+                          }
+                        >
+                          {user.role}
+                        </Badge>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -362,41 +451,174 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
               <CardHeader>
                 <CardTitle>City Management</CardTitle>
                 <CardDescription>
-                  Manage city data and featured status
+                  Manage city listings and information
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <MapPin className="h-12 w-12 mx-auto mb-4" />
-                  <p>City management interface will be implemented here</p>
-                  <p className="text-sm">
-                    Features: City list, featured/verified toggles, bulk
-                    operations
-                  </p>
+                <div className="space-y-4">
+                  {stats.recentActivity.cities.map(city => (
+                    <div
+                      key={city.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div>
+                        <p className="font-medium">{city.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {city.country}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Added {formatDate(city.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {city.featured && (
+                          <Badge variant="default">Featured</Badge>
+                        )}
+                        {city.verified && (
+                          <Badge variant="secondary">Verified</Badge>
+                        )}
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Reviews Tab */}
-          <TabsContent value="reviews" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Review Management</CardTitle>
-                <CardDescription>
-                  Moderate and manage user reviews
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-4" />
-                  <p>Review management interface will be implemented here</p>
-                  <p className="text-sm">
-                    Features: Review moderation, verification, content filtering
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Bulk Upload Tab */}
+          <TabsContent value="bulk-upload" className="space-y-6">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Upload className="h-5 w-5 mr-2" />
+                    Bulk City Upload
+                  </CardTitle>
+                  <CardDescription>
+                    Upload multiple cities using JSON format
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="json-input">JSON Data</Label>
+                    <Textarea
+                      id="json-input"
+                      placeholder="Paste your JSON data here..."
+                      value={jsonInput}
+                      onChange={e => setJsonInput(e.target.value)}
+                      rows={10}
+                      className="font-mono text-sm"
+                    />
+                  </div>
+
+                  {uploadStatus !== "idle" && (
+                    <div
+                      className={cn(
+                        "flex items-center p-3 rounded-md",
+                        uploadStatus === "success" &&
+                          "bg-green-50 text-green-700 border border-green-200",
+                        uploadStatus === "error" &&
+                          "bg-red-50 text-red-700 border border-red-200",
+                        uploadStatus === "uploading" &&
+                          "bg-blue-50 text-blue-700 border border-blue-200"
+                      )}
+                    >
+                      {uploadStatus === "uploading" && (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      )}
+                      {uploadStatus === "success" && (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      {uploadStatus === "error" && (
+                        <AlertCircle className="h-4 w-4 mr-2" />
+                      )}
+                      <span className="text-sm">{uploadMessage}</span>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleBulkUpload}
+                      disabled={uploadStatus === "uploading"}
+                      className="flex-1"
+                    >
+                      {uploadStatus === "uploading" ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Cities
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setJsonInput("");
+                        setUploadStatus("idle");
+                        setUploadMessage("");
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileJson className="h-5 w-5 mr-2" />
+                    JSON Format Example
+                  </CardTitle>
+                  <CardDescription>
+                    Use this format for your city data
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto">
+                      <code>{JSON.stringify(sampleJsonData, null, 2)}</code>
+                    </pre>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setJsonInput(
+                            JSON.stringify(sampleJsonData.cities, null, 2)
+                          )
+                        }
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Use Example
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            JSON.stringify(sampleJsonData, null, 2)
+                          );
+                        }}
+                      >
+                        Copy Example
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

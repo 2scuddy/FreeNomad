@@ -79,6 +79,8 @@ npm run db:test
 npm run db:generate
 ```
 
+**Note**: The project includes a `postinstall` script that automatically runs `prisma generate` after dependency installation, ensuring the Prisma client is always up-to-date in both development and production environments.
+
 #### Push Schema (Development)
 
 ```bash

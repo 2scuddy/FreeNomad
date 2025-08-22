@@ -15,8 +15,8 @@ export function Navigation({ className }: NavigationProps) {
 
   const navigationItems = [
     { href: "/", label: "Home" },
-    { href: "/cities", label: "Cities" },
     { href: "/about", label: "About" },
+    { href: "/guides", label: "Travel Guides" },
     { href: "/contact", label: "Contact" },
   ];
 

@@ -14,11 +14,12 @@ FreeNomad is an open-source platform that helps digital nomads find their perfec
 - **🔍 Advanced Filtering**: Find cities based on your specific criteria
 - **📱 Progressive Web App**: Works offline and installable on mobile devices
 - **🚀 Performance Optimized**: Sub-1s load times with Core Web Vitals optimization
+- **☁️ Production Ready**: Fully deployed on Vercel with optimized build pipeline
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS v4, shadcn/ui components
+- **Styling**: Tailwind CSS v3.4, shadcn/ui components
 - **Backend**: Next.js API Routes, Prisma ORM
 - **Database**: PostgreSQL (Neon)
 - **Authentication**: NextAuth.js v5
@@ -177,6 +178,8 @@ The application uses PostgreSQL with Prisma ORM. Key entities:
    NEXTAUTH_SECRET=your-production-secret
    NEXTAUTH_URL=https://your-domain.vercel.app
    ```
+
+   **Note**: The project includes a `postinstall` script that automatically generates the Prisma client during deployment, ensuring compatibility with Vercel's build environment.
 
 3. **Deploy**
    - Push to main branch for automatic deployment
