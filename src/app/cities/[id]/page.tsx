@@ -4,9 +4,9 @@ import { getCityById } from "@/lib/data-access/cities";
 import { CityDetailPage } from "@/components/city-detail-page";
 
 interface CityPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Generate metadata for SEO
@@ -14,7 +14,8 @@ export async function generateMetadata({
   params,
 }: CityPageProps): Promise<Metadata> {
   try {
-    const city = await getCityById(params.id);
+    const { id } = await params;
+    const city = await getCityById(id);
 
     return {
       title: `${city.name}, ${city.country} - Digital Nomad Guide | FreeNomad`,
@@ -59,7 +60,7 @@ export async function generateMetadata({
         images: city.imageUrl ? [city.imageUrl] : [],
       },
       alternates: {
-        canonical: `/cities/${params.id}`,
+        canonical: `/cities/${id}`,
       },
     };
   } catch (error) {
@@ -73,7 +74,8 @@ export async function generateMetadata({
 // Main page component with server-side rendering
 export default async function CityPage({ params }: CityPageProps) {
   try {
-    const city = await getCityById(params.id);
+    const { id } = await params;
+    const city = await getCityById(id);
 
     if (!city) {
       notFound();
