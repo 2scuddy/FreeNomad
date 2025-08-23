@@ -131,6 +131,11 @@
     "tsx": "^4.20.4",
     "typescript": "^5"
   },
+  "overrides": {
+    "lucide-react": {
+      "react": "$react"
+    }
+  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
