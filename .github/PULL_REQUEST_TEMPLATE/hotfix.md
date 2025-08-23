@@ -146,8 +146,7 @@ Related to #<!-- issue number -->
 
 <!-- Detailed rollback procedure -->
 
-1. **Trigger Conditions:**
-   -
+1. ## **Trigger Conditions:**
    -
 
 2. **Rollback Steps:**

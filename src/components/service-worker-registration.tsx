@@ -97,8 +97,11 @@ export function initPerformanceMonitoring() {
     console.log("LCP:", lastEntry.startTime);
 
     // Send to analytics if available
-    if (typeof (window as any).gtag === "function") {
-      (window as any).gtag("event", "web_vitals", {
+    const windowWithGtag = window as Window & {
+      gtag?: (...args: unknown[]) => void;
+    };
+    if (typeof windowWithGtag.gtag === "function") {
+      windowWithGtag.gtag("event", "web_vitals", {
         name: "LCP",
         value: Math.round(lastEntry.startTime),
         event_category: "Performance",
@@ -115,18 +118,23 @@ export function initPerformanceMonitoring() {
   // Monitor First Input Delay (FID)
   const fidObserver = new PerformanceObserver(list => {
     const entries = list.getEntries();
-    entries.forEach((entry: any) => {
-      const fidValue = entry.processingStart - entry.startTime;
-      console.log("FID:", fidValue);
+    entries.forEach(
+      (entry: PerformanceEntry & { processingStart?: number }) => {
+        const fidValue = (entry.processingStart || 0) - entry.startTime;
+        console.log("FID:", fidValue);
 
-      if (typeof (window as any).gtag === "function") {
-        (window as any).gtag("event", "web_vitals", {
-          name: "FID",
-          value: Math.round(fidValue),
-          event_category: "Performance",
-        });
+        const windowWithGtag = window as Window & {
+          gtag?: (...args: unknown[]) => void;
+        };
+        if (typeof windowWithGtag.gtag === "function") {
+          windowWithGtag.gtag("event", "web_vitals", {
+            name: "FID",
+            value: Math.round(fidValue),
+            event_category: "Performance",
+          });
+        }
       }
-    });
+    );
   });
 
   try {
@@ -139,16 +147,23 @@ export function initPerformanceMonitoring() {
   let clsValue = 0;
   const clsObserver = new PerformanceObserver(list => {
     const entries = list.getEntries();
-    entries.forEach((entry: any) => {
-      if (!entry.hadRecentInput) {
-        clsValue += entry.value;
+    entries.forEach(
+      (
+        entry: PerformanceEntry & { hadRecentInput?: boolean; value?: number }
+      ) => {
+        if (!entry.hadRecentInput) {
+          clsValue += entry.value || 0;
+        }
       }
-    });
+    );
 
     console.log("CLS:", clsValue);
 
-    if (typeof (window as any).gtag === "function") {
-      (window as any).gtag("event", "web_vitals", {
+    const windowWithGtag = window as Window & {
+      gtag?: (...args: unknown[]) => void;
+    };
+    if (typeof windowWithGtag.gtag === "function") {
+      windowWithGtag.gtag("event", "web_vitals", {
         name: "CLS",
         value: Math.round(clsValue * 1000),
         event_category: "Performance",

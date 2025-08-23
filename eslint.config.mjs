@@ -28,6 +28,11 @@ const eslintConfig = [
       "**/runtime/**",
       "public/sw.js",
       "**/*.min.js",
+      "test-results/**",
+      "playwright-report/**",
+      "tests/automation/framework/**",
+      "tests/automation/monitoring/**",
+      "tests/automation/reporting/**",
     ],
   },
   // Extend configurations
@@ -50,13 +55,28 @@ const eslintConfig = [
     files: [
       "**/*.test.{js,jsx,ts,tsx}",
       "**/*.spec.{js,jsx,ts,tsx}",
+      "tests/**/*.{js,jsx,ts,tsx}",
+      "**/__tests__/**/*.{js,jsx,ts,tsx}",
       "jest.*.js",
       "*.config.{js,mjs}",
     ],
+    languageOptions: {
+      globals: {
+        jest: "readonly",
+        describe: "readonly",
+        it: "readonly",
+        expect: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+      },
+    },
     rules: {
       "@typescript-eslint/no-require-imports": "off",
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-expressions": "off",
     },
   },
 ];

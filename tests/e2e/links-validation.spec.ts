@@ -143,9 +143,6 @@ test.describe("Links Validation", () => {
         const card = cityCards.nth(i);
         await expect(card).toBeVisible();
 
-        // Get city name for URL validation
-        const cityName = await card.locator("h3").textContent();
-
         // Click and verify navigation
         await card.click();
         await page.waitForURL(/\/cities\/.+/);

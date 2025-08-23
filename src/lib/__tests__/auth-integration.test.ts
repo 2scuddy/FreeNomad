@@ -9,18 +9,8 @@ import {
   afterEach,
   jest,
 } from "@jest/globals";
-import { NextRequest } from "next/server";
 
 // Mock the Prisma client
-const mockUser = {
-  id: "test-user-id",
-  email: "test@example.com",
-  name: "Test User",
-  password: "$2a$10$hashedpassword",
-  role: "USER",
-  emailVerified: new Date(),
-  image: null,
-};
 
 jest.mock("../prisma", () => ({
   prisma: {
@@ -218,8 +208,6 @@ describe("Auth Integration Tests", () => {
     it("should handle GET requests to auth endpoint", async () => {
       const { GET } = await import("../auth");
 
-      const request = new NextRequest("http://localhost:3000/api/auth/signin");
-
       // Mock the handler
       mockNextAuth.handlers.GET.mockResolvedValue(
         new Response("OK", { status: 200 })
@@ -231,14 +219,6 @@ describe("Auth Integration Tests", () => {
 
     it("should handle POST requests to auth endpoint", async () => {
       const { POST } = await import("../auth");
-
-      const request = new NextRequest("http://localhost:3000/api/auth/signin", {
-        method: "POST",
-        body: JSON.stringify({
-          email: "test@example.com",
-          password: "password",
-        }),
-      });
 
       // Mock the handler
       mockNextAuth.handlers.POST.mockResolvedValue(

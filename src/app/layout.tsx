@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { StackProvider, StackTheme } from "@stackframe/stack";
+import { stackServerApp } from "../stack";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import { Providers } from "@/components/providers";
@@ -45,12 +47,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
-          <ErrorBoundary showDetails={process.env.NODE_ENV === "development"}>
-            {children}
-          </ErrorBoundary>
-          <ServiceWorkerRegistration />
-        </Providers>
+        <StackProvider app={stackServerApp}>
+          <StackTheme>
+            <Providers>
+              <ErrorBoundary
+                showDetails={process.env.NODE_ENV === "development"}
+              >
+                {children}
+              </ErrorBoundary>
+              <ServiceWorkerRegistration />
+            </Providers>
+          </StackTheme>
+        </StackProvider>
       </body>
     </html>
   );
