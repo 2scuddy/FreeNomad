@@ -71,7 +71,7 @@ jobs:
           # Add repository context for private repos
           checkout_path: ${{ github.workspace }}
         continue-on-error: true
-        
+
       - name: Upload security scan artifacts
         uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.5
         if: always()
@@ -147,7 +147,7 @@ jobs:
         run: npm run test
         continue-on-error: false
         timeout-minutes: 15
-        
+
       - name: Upload test results
         uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.5
         if: always()
@@ -167,7 +167,7 @@ jobs:
         run: npm run build
         continue-on-error: false
         timeout-minutes: 20
-        
+
       - name: Verify build output
         run: |
           if [ ! -d ".next" ]; then
