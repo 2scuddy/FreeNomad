@@ -36,7 +36,7 @@ async function testConnection() {
       ORDER BY table_name`;
     
     console.log(`📋 Available tables:`);
-    (tables as any[]).forEach(table => {
+    (tables as { table_name: string; table_type: string }[]).forEach((table) => {
       console.log(`   - ${table.table_name} (${table.table_type})`);
     });
     

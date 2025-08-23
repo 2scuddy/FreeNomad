@@ -5,7 +5,7 @@ function validateEnvironmentVariables() {
   const errors = [];
   const warnings = [];
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
-  const isVercel = process.env.VERCEL === '1';
+  // const isVercel = process.env.VERCEL === '1'; // Reserved for future use
 
   // Required environment variables
   const required = {
