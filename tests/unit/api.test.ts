@@ -30,6 +30,18 @@ jest.mock("../../src/lib/db-utils", () => {
   const originalModule = jest.requireActual("../../src/lib/db-utils") as any;
   return {
     ...originalModule,
+    safeDbOperation: jest.fn().mockImplementation(async (operation: any) => {
+      // Check if we're in an error test scenario
+      if (process.env.NODE_ENV === "test") {
+        try {
+          return await operation();
+        } catch (error) {
+          // Re-throw the error to trigger the catch block in getCities
+          throw error;
+        }
+      }
+      return await operation();
+    }),
     paginate: jest
       .fn()
       .mockImplementation(async (model: any, options: any, where?: any) => {
