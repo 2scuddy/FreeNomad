@@ -45,6 +45,8 @@ const mockCityData = [
     imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    reviews: [{ rating: 4.5 }, { rating: 4.0 }, { rating: 4.2 }],
+    _count: { reviews: 3 },
   },
   {
     id: "2",
@@ -68,6 +70,8 @@ const mockCityData = [
     imageUrl: "https://images.unsplash.com/photo-1528181304800-259b08848526",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    reviews: [{ rating: 4.4 }, { rating: 4.6 }],
+    _count: { reviews: 2 },
   },
 ];
 
