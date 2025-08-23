@@ -214,6 +214,9 @@ async function createBackup(environment: string): Promise<string> {
       reviews
     };
     
+    // Store backup data (in real implementation, save to file/cloud storage)
+    console.log(`📦 Backup data prepared: ${JSON.stringify(backupData.metadata)}`);
+    
     // In a real implementation, you would save this to a file or cloud storage
     console.log(`✅ Backup created: ${backupName}`);
     console.log(`📊 Backup contains: ${cities.length} cities, ${users.length} users, ${reviews.length} reviews`);

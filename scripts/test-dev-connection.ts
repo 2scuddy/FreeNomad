@@ -71,7 +71,7 @@ async function testConnection() {
     console.log(`\n🎉 All tests passed! Development database is ready.`);
     
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`❌ Connection test failed:`, error);
     return false;
   } finally {

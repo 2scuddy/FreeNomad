@@ -5,13 +5,13 @@ on:
     branches:
       - main
       - staging
-      - develop
+      - development
       - "feature/*"
   pull_request:
     branches:
       - main
       - staging
-      - develop
+      - development
 
 env:
   NODE_VERSION: "20"
@@ -69,7 +69,7 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: quality-checks
-    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging'
+    if: github.ref == 'refs/heads/development' || github.ref == 'refs/heads/staging'
 
     services:
       postgres:
@@ -192,7 +192,7 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
             echo "environment=preview" >> $GITHUB_OUTPUT
             echo "alias=--target=staging" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+          elif [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
             echo "environment=preview" >> $GITHUB_OUTPUT
             echo "alias=--target=development" >> $GITHUB_OUTPUT
           else

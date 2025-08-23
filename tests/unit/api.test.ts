@@ -30,7 +30,7 @@ jest.mock("../../src/lib/db-utils", () => {
   const originalModule = jest.requireActual("../../src/lib/db-utils") as any;
   return {
     ...originalModule,
-    paginate: jest.fn().mockImplementation(async (model: any, options: any, where?: any, orderBy?: any, include?: any) => {
+    paginate: jest.fn().mockImplementation(async (model: any, options: any, where?: any) => {
       const mockData = [
         {
           id: "1",

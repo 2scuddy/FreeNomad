@@ -85,7 +85,7 @@ try {
   global.Response = Response;
   global.Headers = Headers;
   global.fetch = require("undici").fetch;
-} catch (error) {
+} catch {
   // Fallback for environments where undici isn't available
   console.warn("Undici not available, using mock implementations");
 }

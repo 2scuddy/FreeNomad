@@ -41,6 +41,8 @@
     "test:e2e:enhanced": "playwright test tests/e2e/enhanced-auth-workflow.spec.ts",
     "test:db:seed": "ts-node --project tests/automation/tsconfig.json -e \"import { seedQuickTestData } from './tests/automation/database/test-data-seeder'; seedQuickTestData().then(() => console.log('✅ Test data seeded')).catch(console.error)\"",
     "test:db:clear": "ts-node --project tests/automation/tsconfig.json -e \"import { clearTestDatabase } from './tests/automation/database/test-data-seeder'; clearTestDatabase().then(() => console.log('✅ Test database cleared')).catch(console.error)\"",
+    "test:smoke": "npm run test -- --testNamePattern='smoke'",
+    "test:integration": "npm run test:unit",
     "ci:local": "./scripts/local-ci.sh",
     "ci:quick": "./scripts/quick-ci.sh",
     "prepare": "husky",

@@ -351,7 +351,7 @@ class DatabaseSynchronizer {
       // Get initial stats
       console.log(`\n📊 Initial Database State:`);
       const devStatsBefore = await this.getDatabaseStats(devPrisma, 'Development');
-      const prodStats = await this.getDatabaseStats(prodPrisma, 'Production');
+      await this.getDatabaseStats(prodPrisma, 'Production');
       
       if (dryRun) {
         console.log(`\n🔍 DRY RUN MODE - No changes will be made`);
