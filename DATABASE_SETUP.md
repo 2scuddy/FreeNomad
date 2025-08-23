@@ -45,6 +45,14 @@ CREATE DATABASE freenomad;
 3. Copy the connection string
 4. Update `.env` file with your DATABASE_URL
 
+**For Vercel Deployment:**
+
+- Neon automatically provides multiple connection URLs for different use cases
+- `DATABASE_URL`: Main connection URL with connection pooling
+- `DATABASE_URL_UNPOOLED`: Direct connection without pooling (for migrations)
+- `POSTGRES_PRISMA_URL`: Optimized for Prisma with connection pooling
+- All environment variables are automatically configured for Production, Preview, and Development environments
+
 ### 2. Environment Variables
 
 Update your `.env` file:
@@ -265,13 +273,67 @@ npm run db:reset
 npm run db:generate && npm run db:push && npm run db:seed
 ```
 
+## Vercel Deployment with Neon
+
+### Preview Branch Configuration
+
+For Vercel preview deployments with Neon database:
+
+1. **Environment Variables Setup**
+
+   ```bash
+   # All Neon variables are automatically configured for:
+   # - Production: Main database
+   # - Preview: Same database with branch isolation
+   # - Development: Local development setup
+   ```
+
+2. **Preview Branch Database Strategy**
+   - Neon supports database branching for preview deployments
+   - Each preview deployment can use the same database with proper isolation
+   - Connection pooling is automatically handled by Neon
+
+3. **Deployment Commands**
+
+   ```bash
+   # Deploy to preview branch
+   vercel --target preview
+
+   # Check preview deployment
+   vercel ls
+
+   # Promote preview to production
+   vercel --prod
+   ```
+
+4. **Database Migration Strategy**
+   - Use `prisma db push` for preview branches (faster, no migration files)
+   - Use `prisma migrate deploy` for production (proper migration history)
+   - Prisma client is auto-generated via `postinstall` script
+
+### Troubleshooting Vercel + Neon Issues
+
+1. **Connection Timeouts**
+   - Ensure `POSTGRES_PRISMA_URL` is used for Prisma operations
+   - Use `DATABASE_URL_UNPOOLED` for direct database operations
+
+2. **Build Failures**
+   - Verify `postinstall` script runs: `"postinstall": "prisma generate"`
+   - Check Vercel build logs for Prisma client generation
+
+3. **Environment Variable Issues**
+   - All Neon variables should be available in Preview environment
+   - Use `vercel env ls` to verify configuration
+
 ## Production Considerations
 
-1. **Use migrations** instead of `db:push`
-2. **Set up connection pooling** with Prisma Accelerate
-3. **Configure proper indexes** for query performance
-4. **Set up database backups**
-5. **Monitor query performance**
+1. **Use migrations** instead of `db:push` for production
+2. **Set up connection pooling** with Neon's built-in pooling
+3. **Monitor database performance** using Neon dashboard
+4. **Implement proper backup strategy** with Neon's automated backups
+5. **Configure proper indexes** for query performance
+6. **Set up database backups**
+7. **Monitor query performance**
 
 ---
 

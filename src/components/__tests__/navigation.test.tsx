@@ -45,8 +45,8 @@ describe("Navigation Component", () => {
 
     // Check if navigation links are present
     expect(screen.getByText("Home")).toBeInTheDocument();
-    expect(screen.getByText("Cities")).toBeInTheDocument();
     expect(screen.getByText("About")).toBeInTheDocument();
+    expect(screen.getByText("Travel Guides")).toBeInTheDocument();
     expect(screen.getByText("Contact")).toBeInTheDocument();
   });
 

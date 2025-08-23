@@ -8,6 +8,7 @@ import {
   imageSizes,
   imageQuality,
 } from "@/components/ui/optimized-image";
+import { useCityImage } from "@/hooks/use-city-image";
 import { MapPin, Wifi, Shield, DollarSign, Star } from "lucide-react";
 
 // Utility functions
@@ -54,6 +55,21 @@ export function CityCard({ city, className }: CityCardProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
+  // Fetch Unsplash image with fallback to existing imageUrl
+  const {
+    imageUrl: unsplashImageUrl,
+    imageAttribution: unsplashAttribution,
+    isLoading: unsplashLoading,
+    error: unsplashError,
+  } = useCityImage(city.name, city.country, {
+    enabled: !city.imageUrl, // Only fetch if no existing image
+    priority: city.featured,
+  });
+
+  // Determine which image to use
+  const finalImageUrl = city.imageUrl || unsplashImageUrl;
+  const finalAttribution = city.imageAttribution || unsplashAttribution;
+
   return (
     <Link href={`/cities/${city.id}`} className="group block">
       <div
@@ -80,19 +96,19 @@ export function CityCard({ city, className }: CityCardProps) {
 
         {/* Image section */}
         <div className="relative aspect-[4/3] overflow-hidden">
-          {city.imageUrl && !imageError ? (
+          {finalImageUrl && !imageError ? (
             <>
-              {imageLoading && (
+              {(imageLoading || unsplashLoading) && (
                 <div className="absolute inset-0 bg-muted animate-pulse" />
               )}
               <OptimizedImage
-                src={city.imageUrl}
+                src={finalImageUrl}
                 alt={`${city.name}, ${city.country}`}
                 fill
                 className={cn(
                   "object-cover transition-all duration-300",
                   "group-hover:scale-105",
-                  imageLoading ? "opacity-0" : "opacity-100"
+                  imageLoading || unsplashLoading ? "opacity-0" : "opacity-100"
                 )}
                 sizes={imageSizes.cityCard}
                 quality={imageQuality.high}
@@ -103,11 +119,22 @@ export function CityCard({ city, className }: CityCardProps) {
                 }}
                 priority={city.featured}
               />
+              {/* Image attribution for Unsplash images */}
+              {finalAttribution && (
+                <div className="absolute bottom-1 right-1 bg-black/50 text-white text-xs px-1 py-0.5 rounded opacity-70 hover:opacity-100 transition-opacity">
+                  {finalAttribution}
+                </div>
+              )}
             </>
           ) : (
             // Fallback gradient background
             <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
               <MapPin className="h-12 w-12 text-muted-foreground" />
+              {unsplashError && (
+                <div className="absolute bottom-2 left-2 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
+                  Image unavailable
+                </div>
+              )}
             </div>
           )}
 

@@ -47,7 +47,12 @@ const eslintConfig = [
   },
   // Rules for test and config files
   {
-    files: ["**/*.test.{js,jsx,ts,tsx}", "**/*.spec.{js,jsx,ts,tsx}", "jest.*.js", "*.config.{js,mjs}"],
+    files: [
+      "**/*.test.{js,jsx,ts,tsx}",
+      "**/*.spec.{js,jsx,ts,tsx}",
+      "jest.*.js",
+      "*.config.{js,mjs}",
+    ],
     rules: {
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/no-explicit-any": "off",

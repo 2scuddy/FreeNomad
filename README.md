@@ -12,6 +12,10 @@ FreeNomad is an open-source platform that helps digital nomads find their perfec
 - **🛡️ Safety Metrics**: Crime statistics, healthcare quality, and safety ratings
 - **⭐ Community Reviews**: Verified reviews from fellow digital nomads
 - **🔍 Advanced Filtering**: Find cities based on your specific criteria
+- **📸 Dynamic Images**: Automatic city images from Unsplash with intelligent caching
+- **📖 Travel Guides**: Comprehensive guides for digital nomadism with categorized content
+- **👤 User Profiles**: Complete account management and personalization settings
+- **🔧 Admin Dashboard**: Advanced management tools with bulk upload capabilities
 - **📱 Progressive Web App**: Works offline and installable on mobile devices
 - **🚀 Performance Optimized**: Sub-1s load times with Core Web Vitals optimization
 - **☁️ Production Ready**: Fully deployed on Vercel with optimized build pipeline

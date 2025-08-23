@@ -426,10 +426,12 @@ async function main() {
     createdUsers.push(user);
     console.log(`✅ Created user: ${user.name} (${user.email})`);
   }
-  
+
   console.log(`\n🔑 All test accounts use password: "${DEFAULT_PASSWORD}"`);
   console.log(`📧 Admin account: admin@freenomad.com`);
-  console.log(`📧 Test accounts: sarah.nomad@example.com, alex.code@example.com, etc.`);
+  console.log(
+    `📧 Test accounts: sarah.nomad@example.com, alex.code@example.com, etc.`
+  );
 
   // Create cities
   console.log("🏙️ Creating cities...");
