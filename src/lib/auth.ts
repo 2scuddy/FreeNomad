@@ -2,6 +2,9 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import type { User, Session } from "next-auth";
+import type { JWT } from "next-auth/jwt";
+import type { AdapterUser } from "next-auth/adapters";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations/user";
 
@@ -12,18 +15,23 @@ function validateAndNormalizeUrl(url: string | undefined): string | undefined {
   try {
     let normalizedUrl = url.trim();
 
+    // Remove any trailing slashes for consistency
+    normalizedUrl = normalizedUrl.replace(/\/+$/, "");
+
     // Basic validation before adding protocol - must contain a dot (except for localhost)
     if (!normalizedUrl.includes(".") && !normalizedUrl.includes("localhost")) {
       console.error("Invalid URL format:", url);
       return undefined;
     }
 
-    // Add protocol if missing
+    // Add protocol if missing (default to https for production domains)
     if (
       !normalizedUrl.startsWith("http://") &&
       !normalizedUrl.startsWith("https://")
     ) {
-      normalizedUrl = `https://${normalizedUrl}`;
+      // Use http for localhost, https for everything else
+      const protocol = normalizedUrl.includes("localhost") ? "http" : "https";
+      normalizedUrl = `${protocol}://${normalizedUrl}`;
     }
 
     // Validate by creating URL object
@@ -47,28 +55,50 @@ function getNextAuthUrl(): string | undefined {
   // In Vercel, NEXTAUTH_URL is automatically set, but we should validate it
   const nextAuthUrl = process.env.NEXTAUTH_URL;
   const vercelUrl = process.env.VERCEL_URL;
+  const nodeEnv = process.env.NODE_ENV;
+
+  console.log("NextAuth URL detection:", {
+    nextAuthUrl: nextAuthUrl
+      ? `${nextAuthUrl.substring(0, 20)}...`
+      : "undefined",
+    vercelUrl: vercelUrl ? `${vercelUrl.substring(0, 20)}...` : "undefined",
+    nodeEnv,
+  });
 
   // Priority: NEXTAUTH_URL > VERCEL_URL > localhost fallback
   if (nextAuthUrl) {
     const validated = validateAndNormalizeUrl(nextAuthUrl);
-    if (validated) return validated;
+    if (validated) {
+      console.log("Using NEXTAUTH_URL:", validated);
+      return validated;
+    }
+    console.warn("NEXTAUTH_URL is invalid:", nextAuthUrl);
   }
 
   if (vercelUrl) {
     const validated = validateAndNormalizeUrl(vercelUrl);
-    if (validated) return validated;
+    if (validated) {
+      console.log("Using VERCEL_URL:", validated);
+      return validated;
+    }
+    console.warn("VERCEL_URL is invalid:", vercelUrl);
   }
 
   // Fallback for development
-  if (process.env.NODE_ENV === "development") {
+  if (nodeEnv === "development") {
+    console.log("Using development fallback: http://localhost:3000");
     return "http://localhost:3000";
   }
 
-  console.warn(
-    "No valid NEXTAUTH_URL found. This may cause authentication issues."
+  console.error(
+    "No valid NEXTAUTH_URL found. This will cause authentication issues.",
+    { nextAuthUrl, vercelUrl, nodeEnv }
   );
   return undefined;
 }
+
+// Get the validated URL for NextAuth
+const authUrl = getNextAuthUrl();
 
 // Enhanced NextAuth configuration with robust URL handling
 const nextAuthConfig = {
@@ -81,8 +111,8 @@ const nextAuthConfig = {
     signIn: "/auth/login",
     error: "/auth/error",
   },
-  // Add the validated URL if available
-  ...(getNextAuthUrl() && { url: getNextAuthUrl() }),
+  // Set the URL explicitly if we have a valid one
+  ...(authUrl && { url: authUrl }),
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -134,24 +164,24 @@ const nextAuthConfig = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: any; user: any }) {
+    async jwt({ token, user }: { token: JWT; user: User | AdapterUser }) {
       if (user) {
-        token.role = user.role;
-        token.emailVerified = user.emailVerified;
+        token.role = (user as any).role;
+        token.emailVerified = (user as any).emailVerified;
       }
       return token;
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (token) {
-        session.user.id = token.sub!;
-        session.user.role = token.role;
-        session.user.emailVerified = token.emailVerified;
+        (session.user as any).id = token.sub!;
+        (session.user as any).role = token.role;
+        (session.user as any).emailVerified = token.emailVerified;
       }
       return session;
     },
   },
   events: {
-    async signIn({ user }: { user: any }) {
+    async signIn({ user }: { user: User }) {
       console.log("User signed in:", { userId: user.id, email: user.email });
     },
     async signOut() {

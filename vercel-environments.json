@@ -1,0 +1,148 @@
+{
+  "environments": {
+    "production": {
+      "branch": "main",
+      "domain": "freenomad.com",
+      "alias": ["www.freenomad.com"],
+      "env": {
+        "NODE_ENV": "production",
+        "VERCEL_ENV": "production",
+        "NEXT_PUBLIC_APP_ENV": "production",
+        "NEXT_PUBLIC_VERCEL_ENV": "production"
+      },
+      "build": {
+        "env": {
+          "NODE_ENV": "production"
+        }
+      },
+      "functions": {
+        "src/app/api/**/*.ts": {
+          "maxDuration": 30
+        }
+      }
+    },
+    "staging": {
+      "branch": "staging",
+      "domain": "staging.freenomad.com",
+      "alias": ["staging-freenomad.vercel.app"],
+      "env": {
+        "NODE_ENV": "production",
+        "VERCEL_ENV": "preview",
+        "NEXT_PUBLIC_APP_ENV": "staging",
+        "NEXT_PUBLIC_VERCEL_ENV": "preview"
+      },
+      "build": {
+        "env": {
+          "NODE_ENV": "production"
+        }
+      },
+      "functions": {
+        "src/app/api/**/*.ts": {
+          "maxDuration": 45
+        }
+      }
+    },
+    "development": {
+      "branch": "develop",
+      "domain": "dev.freenomad.com",
+      "alias": ["dev-freenomad.vercel.app"],
+      "env": {
+        "NODE_ENV": "development",
+        "VERCEL_ENV": "preview",
+        "NEXT_PUBLIC_APP_ENV": "development",
+        "NEXT_PUBLIC_VERCEL_ENV": "preview"
+      },
+      "build": {
+        "env": {
+          "NODE_ENV": "development"
+        }
+      },
+      "functions": {
+        "src/app/api/**/*.ts": {
+          "maxDuration": 60
+        }
+      }
+    },
+    "feature": {
+      "branch": "feature/*",
+      "env": {
+        "NODE_ENV": "development",
+        "VERCEL_ENV": "preview",
+        "NEXT_PUBLIC_APP_ENV": "feature",
+        "NEXT_PUBLIC_VERCEL_ENV": "preview"
+      },
+      "build": {
+        "env": {
+          "NODE_ENV": "development"
+        }
+      },
+      "functions": {
+        "src/app/api/**/*.ts": {
+          "maxDuration": 60
+        }
+      }
+    }
+  },
+  "deployment": {
+    "strategy": {
+      "main": {
+        "type": "production",
+        "autoPromote": true,
+        "protection": {
+          "required": true,
+          "checks": ["ci/tests", "ci/build", "ci/security"]
+        }
+      },
+      "staging": {
+        "type": "preview",
+        "autoPromote": false,
+        "protection": {
+          "required": true,
+          "checks": ["ci/tests", "ci/build"]
+        }
+      },
+      "develop": {
+        "type": "preview",
+        "autoPromote": false,
+        "protection": {
+          "required": false,
+          "checks": ["ci/tests"]
+        }
+      },
+      "feature/*": {
+        "type": "preview",
+        "autoPromote": false,
+        "protection": {
+          "required": false,
+          "checks": []
+        }
+      }
+    }
+  },
+  "monitoring": {
+    "production": {
+      "analytics": true,
+      "speedInsights": true,
+      "webVitals": true,
+      "lighthouse": true
+    },
+    "staging": {
+      "analytics": true,
+      "speedInsights": true,
+      "webVitals": true,
+      "lighthouse": true
+    },
+    "development": {
+      "analytics": false,
+      "speedInsights": false,
+      "webVitals": false,
+      "lighthouse": false
+    },
+    "feature": {
+      "analytics": false,
+      "speedInsights": false,
+      "webVitals": false,
+      "lighthouse": false
+    }
+  }
+}

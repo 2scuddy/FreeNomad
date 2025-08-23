@@ -1,8 +1,11 @@
 {
-  "buildCommand": "next build",
+  "buildCommand": "node vercel-env-validation.js && next build",
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
+    },
+    "src/app/api/auth/**/*.ts": {
+      "maxDuration": 15
     }
   },
   "regions": ["iad1"],
@@ -14,10 +17,62 @@
       "PRISMA_GENERATE_DATAPROXY": "true"
     }
   },
+  "headers": [
+    {
+      "source": "/api/auth/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/health",
+      "destination": "/api/health",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/staging/(.*)",
+      "destination": "/$1",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*-staging\\.vercel\\.app$"
+        }
+      ]
+    }
+  ],
   "crons": [
     {
       "path": "/api/health",
       "schedule": "0 0 * * *"
     }
-  ]
+  ],
+  "github": {
+    "autoAlias": false,
+    "autoJobCancelation": true,
+    "silent": false
+  }
 }

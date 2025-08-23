@@ -1,0 +1,117 @@
+{
+  "branch_protection_rules": {
+    "main": {
+      "protection": {
+        "required_status_checks": {
+          "strict": true,
+          "contexts": [
+            "Quality Checks",
+            "E2E Tests",
+            "Security Checks",
+            "Lighthouse Performance"
+          ]
+        },
+        "enforce_admins": true,
+        "required_pull_request_reviews": {
+          "required_approving_review_count": 2,
+          "dismiss_stale_reviews": true,
+          "require_code_owner_reviews": true,
+          "require_last_push_approval": true
+        },
+        "restrictions": {
+          "users": [],
+          "teams": ["maintainers", "senior-developers"]
+        },
+        "required_linear_history": true,
+        "allow_force_pushes": false,
+        "allow_deletions": false,
+        "block_creations": false,
+        "required_conversation_resolution": true
+      }
+    },
+    "staging": {
+      "protection": {
+        "required_status_checks": {
+          "strict": true,
+          "contexts": ["Quality Checks", "Integration Tests", "E2E Tests"]
+        },
+        "enforce_admins": false,
+        "required_pull_request_reviews": {
+          "required_approving_review_count": 1,
+          "dismiss_stale_reviews": true,
+          "require_code_owner_reviews": false,
+          "require_last_push_approval": false
+        },
+        "restrictions": {
+          "users": [],
+          "teams": ["developers"]
+        },
+        "required_linear_history": false,
+        "allow_force_pushes": false,
+        "allow_deletions": false,
+        "block_creations": false,
+        "required_conversation_resolution": true
+      }
+    },
+    "develop": {
+      "protection": {
+        "required_status_checks": {
+          "strict": true,
+          "contexts": ["Quality Checks", "Integration Tests"]
+        },
+        "enforce_admins": false,
+        "required_pull_request_reviews": {
+          "required_approving_review_count": 1,
+          "dismiss_stale_reviews": false,
+          "require_code_owner_reviews": false,
+          "require_last_push_approval": false
+        },
+        "restrictions": null,
+        "required_linear_history": false,
+        "allow_force_pushes": false,
+        "allow_deletions": false,
+        "block_creations": false,
+        "required_conversation_resolution": false
+      }
+    }
+  },
+  "setup_instructions": {
+    "manual_setup": [
+      "1. Go to your GitHub repository settings",
+      "2. Navigate to 'Branches' in the left sidebar",
+      "3. Click 'Add rule' for each branch (main, staging, develop)",
+      "4. Configure each branch according to the rules above",
+      "5. Save the protection rules"
+    ],
+    "github_cli_setup": [
+      "1. Install GitHub CLI: https://cli.github.com/",
+      "2. Authenticate: gh auth login",
+      "3. Run the setup script: node .github/setup-branch-protection.js"
+    ],
+    "api_setup": [
+      "1. Use GitHub REST API with a personal access token",
+      "2. Make PUT requests to /repos/{owner}/{repo}/branches/{branch}/protection",
+      "3. Include the protection configuration from this file"
+    ]
+  },
+  "required_permissions": [
+    "Admin access to the repository",
+    "Push access to protected branches (for authorized users/teams)",
+    "GitHub Actions workflow permissions",
+    "Vercel deployment permissions"
+  ],
+  "team_structure": {
+    "maintainers": {
+      "description": "Repository maintainers with full access",
+      "permissions": ["admin", "push", "pull"]
+    },
+    "senior-developers": {
+      "description": "Senior developers who can approve main branch PRs",
+      "permissions": ["push", "pull"]
+    },
+    "developers": {
+      "description": "Regular developers with standard access",
+      "permissions": ["push", "pull"]
+    }
+  }
+}
