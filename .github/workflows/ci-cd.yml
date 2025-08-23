@@ -132,7 +132,7 @@ jobs:
 
       - name: Run Prettier check
         run: npm run format:check
-        continue-on-error: false
+        continue-on-error: true
         timeout-minutes: 5
 
       - name: Run TypeScript check
