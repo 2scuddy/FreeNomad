@@ -51,7 +51,21 @@
     "db:reset": "prisma migrate reset",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "db:test": "tsx scripts/test-db-connection.ts"
+    "db:test": "tsx scripts/test-db-connection.ts",
+    "db:test:neon": "tsx scripts/test-neon-connection.ts",
+    "db:test:dev": "tsx scripts/test-dev-connection.ts",
+
+    "db:deploy:production": "tsx scripts/deploy-production-data.ts production",
+    "db:deploy:staging": "tsx scripts/deploy-production-data.ts staging",
+    "db:deploy:development": "tsx scripts/deploy-production-data.ts development",
+    "db:validate": "tsx scripts/deploy-production-data.ts production --validate-only",
+    "db:setup:complete": "npm run db:seed",
+    "db:fix:images": "tsx scripts/fix-city-images.ts",
+    "db:sync:dev": "tsx scripts/sync-dev-database.ts",
+    "db:sync:schema": "tsx scripts/sync-dev-database.ts --schema-only",
+    "db:sync:data": "tsx scripts/sync-dev-database.ts --data-only",
+    "db:sync:full": "tsx scripts/sync-dev-database.ts --include-users",
+    "db:sync:dry-run": "tsx scripts/sync-dev-database.ts --dry-run"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -68,14 +82,16 @@
     "@radix-ui/react-slider": "^1.3.6",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
-    "@types/axios": "^0.9.36",
+    "@stackframe/stack": "^2.8.32",
+
     "@types/bcryptjs": "^2.4.6",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^7.0.1",
-    "axios": "^1.11.0",
+
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.1",
     "lucide-react": "^0.540.0",
     "next": "15.5.0",
     "next-auth": "^5.0.0-beta.29",

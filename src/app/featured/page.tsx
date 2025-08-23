@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Star, MapPin, Wifi, DollarSign, Shield } from "lucide-react";
 import {
   Card,
@@ -117,9 +118,11 @@ export default function FeaturedPage() {
             className="overflow-hidden hover:shadow-lg transition-shadow"
           >
             <div className="relative">
-              <img
+              <Image
                 src={city.image}
                 alt={`${city.name}, ${city.country}`}
+                width={800}
+                height={600}
                 className="w-full h-48 object-cover"
               />
               <Badge className="absolute top-4 left-4 bg-primary">

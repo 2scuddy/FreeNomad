@@ -55,7 +55,7 @@ jobs:
         env:
           NODE_ENV: test
           NEXTAUTH_SECRET: test-secret-for-ci
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
 
       - name: Build application
         run: npm run build
@@ -75,9 +75,10 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_PASSWORD: test
-          POSTGRES_USER: test
-          POSTGRES_DB: test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: freenomad_test
+          POSTGRES_HOST_AUTH_METHOD: md5
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -104,7 +105,7 @@ jobs:
           npx prisma generate
           npx prisma db push
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
 
       - name: Run integration tests
         run: |
@@ -117,7 +118,7 @@ jobs:
           fi
         env:
           NODE_ENV: test
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
           NEXTAUTH_SECRET: test-secret-for-ci
           NEXTAUTH_URL: http://localhost:3000
         timeout-minutes: 15
@@ -151,7 +152,7 @@ jobs:
         env:
           NODE_ENV: test
           NEXTAUTH_SECRET: test-secret-for-ci
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
 
       - name: Upload E2E test results
         uses: actions/upload-artifact@v4

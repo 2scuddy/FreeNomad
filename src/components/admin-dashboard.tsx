@@ -82,7 +82,12 @@ interface AdminDashboardProps {
         };
       }>;
     };
-    growth: any[];
+    growth: Array<{
+      date: string;
+      users: number;
+      cities: number;
+      reviews: number;
+    }>;
   };
 }
 

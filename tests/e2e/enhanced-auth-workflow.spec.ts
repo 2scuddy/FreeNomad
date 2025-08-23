@@ -1,13 +1,14 @@
 import { test, expect } from "@playwright/test";
 import { TimeoutManager } from "../automation/config/timeout-config";
-import {
-  PlaywrightDatabaseUtils,
-  TEST_CONFIGS,
-} from "../automation/database/test-database-setup";
+import { PlaywrightDatabaseUtils } from "../automation/database/test-database-setup";
 
 test.describe("Enhanced Authentication Workflow", () => {
   let sessionId: string;
-  let testData: any;
+  let testData: {
+    data: unknown;
+    adminUser: any;
+    regularUser: any;
+  };
 
   test.beforeEach(async ({ page }) => {
     // Setup test with enhanced timeout and database management
@@ -201,7 +202,7 @@ test.describe("Enhanced Authentication Workflow", () => {
     console.log("✅ Login validation error handling verified");
   });
 
-  test("should verify data consistency throughout test", async ({ page }) => {
+  test("should verify data consistency throughout test", async () => {
     console.log("🔍 Verifying data consistency...");
 
     // Verify initial data integrity

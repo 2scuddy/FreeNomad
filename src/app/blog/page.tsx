@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Calendar, User, ArrowRight } from "lucide-react";
 import {
   Card,
@@ -130,9 +131,11 @@ export default function BlogPage() {
         <Card className="mb-12 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <div className="relative">
-              <img
+              <Image
                 src={featuredPost.image}
                 alt={featuredPost.title}
+                width={800}
+                height={400}
                 className="w-full h-64 lg:h-full object-cover"
               />
               <Badge className="absolute top-4 left-4 bg-primary">
@@ -194,9 +197,11 @@ export default function BlogPage() {
             className="overflow-hidden hover:shadow-lg transition-shadow"
           >
             <div className="relative">
-              <img
+              <Image
                 src={post.image}
                 alt={post.title}
+                width={800}
+                height={400}
                 className="w-full h-48 object-cover"
               />
             </div>

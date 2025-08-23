@@ -68,7 +68,8 @@ jest.mock("./src/lib/prisma", () => ({
 process.env.NODE_ENV = "test";
 process.env.NEXTAUTH_SECRET = "test-secret";
 process.env.NEXTAUTH_URL = "http://localhost:3000";
-process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test";
+// Use development branch database for testing
+process.env.DATABASE_URL = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_PYrVHIoJL20c@ep-lively-darkness-ad0i53ph-pooler.c-2.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require";
 
 // Polyfill TextEncoder/TextDecoder for Node environment
 if (typeof global.TextEncoder === "undefined") {

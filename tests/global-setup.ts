@@ -1,6 +1,6 @@
-import { chromium, FullConfig } from "@playwright/test";
+import { chromium } from "@playwright/test";
 
-async function globalSetup(_config: FullConfig) {
+async function globalSetup() {
   console.log("🚀 Starting global test setup...");
 
   // Setup test database if needed
@@ -8,7 +8,7 @@ async function globalSetup(_config: FullConfig) {
 
   // Pre-authenticate users for tests that need authentication
   const browser = await chromium.launch();
-  const _page = await browser.newPage();
+  await browser.newPage();
 
   // You can pre-authenticate a user here and save the storage state
   // await page.goto('/auth/login');

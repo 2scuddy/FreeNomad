@@ -48,10 +48,13 @@ function LoginPageContent() {
       loginSchema.parse(formData);
       setErrors({});
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const fieldErrors: Partial<Login> = {};
-      if (error.errors) {
-        error.errors.forEach((err: any) => {
+      if (error && typeof error === "object" && "errors" in error) {
+        const validationError = error as {
+          errors?: Array<{ path?: string[]; message: string }>;
+        };
+        validationError.errors?.forEach(err => {
           if (err.path) {
             fieldErrors[err.path[0] as keyof Login] = err.message;
           }

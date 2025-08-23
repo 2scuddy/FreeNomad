@@ -49,13 +49,18 @@ export default function RegisterPage() {
       registerSchema.parse(formData);
       setErrors({});
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const fieldErrors: Partial<Register> = {};
-      error.errors?.forEach((err: any) => {
-        if (err.path) {
-          fieldErrors[err.path[0] as keyof Register] = err.message;
-        }
-      });
+      if (error && typeof error === "object" && "errors" in error) {
+        const validationError = error as {
+          errors?: Array<{ path?: string[]; message: string }>;
+        };
+        validationError.errors?.forEach(err => {
+          if (err.path) {
+            fieldErrors[err.path[0] as keyof Register] = err.message;
+          }
+        });
+      }
       setErrors(fieldErrors);
       return false;
     }
@@ -98,10 +103,12 @@ export default function RegisterPage() {
           "/auth/login?message=Registration successful. Please sign in."
         );
       }, 2000);
-    } catch (error: any) {
-      setAuthError(
-        error.message || "An unexpected error occurred. Please try again."
-      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred. Please try again.";
+      setAuthError(errorMessage);
     } finally {
       setIsLoading(false);
     }
