@@ -2,8 +2,6 @@ import { NextRequest } from "next/server";
 import { getCities } from "@/lib/data-access/cities";
 import { validateCityQuery } from "@/lib/validations/city";
 import {
-  successResponse,
-  errorResponse,
   validationErrorResponse,
   serverErrorResponse,
   paginatedResponse,
@@ -34,7 +32,7 @@ export const GET = withApiMiddleware(
 
         // Return paginated response
         return paginatedResponse(
-          result.data,
+          result.data as Array<Record<string, unknown>>,
           result.meta.total,
           result.meta.page,
           result.meta.limit

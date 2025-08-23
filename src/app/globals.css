@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "tw-animate-css";
-
 :root {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

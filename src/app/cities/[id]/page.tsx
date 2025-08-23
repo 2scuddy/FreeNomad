@@ -63,7 +63,7 @@ export async function generateMetadata({
         canonical: `/cities/${id}`,
       },
     };
-  } catch (error) {
+  } catch {
     return {
       title: "City Not Found | FreeNomad",
       description: "The requested city could not be found.",
@@ -81,7 +81,11 @@ export default async function CityPage({ params }: CityPageProps) {
       notFound();
     }
 
-    return <CityDetailPage city={city} />;
+    return (
+      <CityDetailPage
+        city={city as unknown as Parameters<typeof CityDetailPage>[0]["city"]}
+      />
+    );
   } catch (error) {
     console.error("Error fetching city:", error);
     notFound();

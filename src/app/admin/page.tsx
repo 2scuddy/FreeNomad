@@ -24,7 +24,7 @@ export default async function AdminPage() {
     };
 
     return <AdminDashboard user={adminUser} stats={adminStats} />;
-  } catch (error) {
+  } catch {
     // Redirect to login if not authenticated or not admin
     redirect("/auth/login?callbackUrl=/admin&error=AdminAccessRequired");
   }

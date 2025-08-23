@@ -1,9 +1,5 @@
-import { TestCase, TestStep } from "../framework/test-framework";
-import {
-  BrowserConfig,
-  BROWSER_CONFIGS,
-  DEVICE_PROFILES,
-} from "../config/browser-config";
+import { TestCase } from "../framework/test-framework";
+import { BROWSER_CONFIGS } from "../config/browser-config";
 import { PipelineConfig, TestSuite } from "../ci-cd/pipeline-integration";
 import { PipelineIntegration } from "../ci-cd/pipeline-integration";
 

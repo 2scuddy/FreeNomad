@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+// Error details interface
+export interface ErrorDetails {
+  field?: string;
+  value?: unknown;
+  constraint?: string;
+  [key: string]: unknown;
+}
+
 // Standard API response interface
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: {
     message: string;
     code?: string;
-    details?: any;
+    details?: ErrorDetails | ErrorDetails[];
   };
   meta?: {
     total?: number;
@@ -35,7 +43,7 @@ export function errorResponse(
   message: string,
   statusCode: number = 400,
   code?: string,
-  details?: any
+  details?: ErrorDetails | ErrorDetails[]
 ): NextResponse<ApiResponse> {
   return NextResponse.json(
     {
@@ -124,7 +132,7 @@ export function forbiddenResponse(
 // Internal server error response helper
 export function serverErrorResponse(
   message: string = "Internal server error",
-  details?: any
+  details?: ErrorDetails | ErrorDetails[]
 ): NextResponse<ApiResponse> {
   return NextResponse.json(
     {
@@ -177,7 +185,7 @@ export function paginatedResponse<T>(
 }
 
 // Handle async API route with error catching
-export function withErrorHandling<T extends any[]>(
+export function withErrorHandling<T extends unknown[]>(
   handler: (...args: T) => Promise<NextResponse>
 ) {
   return async (...args: T): Promise<NextResponse> => {

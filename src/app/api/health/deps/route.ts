@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const startTime = Date.now();
 
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         externalAPIs: {
           status: "unknown",
           responseTime: 0,
-          services: {} as Record<string, any>,
+          services: {} as Record<string, unknown>,
         },
       },
       checks: {

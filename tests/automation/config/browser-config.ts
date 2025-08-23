@@ -1,4 +1,4 @@
-import { BrowserType, devices } from "@playwright/test";
+// Browser configuration types and constants
 
 export interface BrowserConfig {
   name: string;

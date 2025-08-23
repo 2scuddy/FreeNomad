@@ -13,7 +13,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Layout } from "@/components/layout";
 import {
   Search,
-  Filter,
   RefreshCw,
   AlertCircle,
   SlidersHorizontal,

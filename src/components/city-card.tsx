@@ -9,6 +9,7 @@ import {
   imageQuality,
 } from "@/components/ui/optimized-image";
 import { useCityImage } from "@/hooks/use-city-image";
+import { SimpleErrorBoundary } from "@/components/error-boundary";
 import { MapPin, Wifi, Shield, DollarSign, Star } from "lucide-react";
 
 // Utility functions
@@ -51,7 +52,7 @@ interface CityCardProps {
   className?: string;
 }
 
-export function CityCard({ city, className }: CityCardProps) {
+function CityCardInner({ city, className }: CityCardProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
@@ -222,8 +223,25 @@ export function CityCard({ city, className }: CityCardProps) {
   );
 }
 
+// Export components wrapped with error boundaries
+export function CityCard(props: CityCardProps) {
+  return (
+    <SimpleErrorBoundary>
+      <CityCardInner {...props} />
+    </SimpleErrorBoundary>
+  );
+}
+
+export function CityCardCompact(props: CityCardProps) {
+  return (
+    <SimpleErrorBoundary>
+      <CityCardCompactInner {...props} />
+    </SimpleErrorBoundary>
+  );
+}
+
 // Compact version for smaller spaces
-export function CityCardCompact({ city, className }: CityCardProps) {
+function CityCardCompactInner({ city, className }: CityCardProps) {
   const [imageError, setImageError] = useState(false);
 
   return (

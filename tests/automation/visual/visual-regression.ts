@@ -45,7 +45,7 @@ export class VisualRegressionTester {
     for (const dir of dirs) {
       try {
         await fs.mkdir(dir, { recursive: true });
-      } catch (error) {
+      } catch {
         // Directory might already exist
       }
     }

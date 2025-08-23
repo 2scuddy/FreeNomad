@@ -292,7 +292,7 @@ export async function getConnectionPoolStatus(): Promise<{
       idleConnections: 0,
       totalConnections: 1,
     };
-  } catch (error) {
+  } catch {
     return {
       activeConnections: 0,
       idleConnections: 0,

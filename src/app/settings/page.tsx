@@ -220,7 +220,7 @@ export default async function SettingsPage() {
         </div>
       </div>
     );
-  } catch (error) {
+  } catch {
     // Redirect to login if not authenticated
     redirect("/auth/login?callbackUrl=/settings&error=AuthenticationRequired");
   }

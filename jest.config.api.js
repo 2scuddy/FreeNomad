@@ -56,8 +56,8 @@ const customJestConfig = {
     "^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { presets: ["next/babel"] }],
   },
 
-  // Transform ignore patterns
-  transformIgnorePatterns: ["node_modules/(?!(.*\\.mjs$))"],
+  // Transform ignore patterns - Updated to handle Auth.js and related ES modules
+  transformIgnorePatterns: ["node_modules/(?!(@auth/.*|next-auth)/)"],
 
   // Module file extensions
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],

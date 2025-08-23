@@ -184,7 +184,11 @@ export class TestDatabaseManager {
   /**
    * Get session data summary
    */
-  async getSessionSummary(sessionId: string): Promise<any> {
+  async getSessionSummary(sessionId: string): Promise<{
+    counts: { cities: number; users: number; reviews: number };
+    snapshot: any;
+    integrity: boolean;
+  }> {
     const session = this.sessions.get(sessionId);
     if (!session) {
       throw new Error(`Session ${sessionId} not found`);
@@ -254,8 +258,8 @@ export class PlaywrightDatabaseUtils {
   ): Promise<{
     session: TestDatabaseSession;
     data: SeededData | null;
-    adminUser: any;
-    regularUser: any;
+    adminUser: SeededData["users"][0] | undefined;
+    regularUser: SeededData["users"][0] | undefined;
   }> {
     // Configure extended timeouts for auth workflows
     await TimeoutManager.configureAuthPage(page, "login");
@@ -290,8 +294,8 @@ export class PlaywrightDatabaseUtils {
   ): Promise<{
     session: TestDatabaseSession;
     data: SeededData | null;
-    featuredCities: any[];
-    verifiedCities: any[];
+    featuredCities: SeededData["cities"];
+    verifiedCities: SeededData["cities"];
   }> {
     const { session, data } = await this.setupForTest(page, testName, {
       seedConfig: {
@@ -325,9 +329,9 @@ export class PlaywrightDatabaseUtils {
    * Get test data for assertions
    */
   static async getTestData(sessionId: string): Promise<{
-    cities: any[];
-    users: any[];
-    reviews: any[];
+    cities: SeededData["cities"];
+    users: SeededData["users"];
+    reviews: SeededData["reviews"];
   }> {
     const session = this.manager.getSession(sessionId);
     if (!session) {

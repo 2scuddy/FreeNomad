@@ -12,7 +12,6 @@ import {
 import { NotificationService } from "./notification-service";
 import { TestScheduler } from "./test-scheduler";
 import { ReportGenerator } from "../reporting/report-generator";
-import axios from "axios";
 import * as fs from "fs/promises";
 import * as path from "path";
 
@@ -182,7 +181,7 @@ export class PipelineIntegration {
         duration,
       });
 
-      throw error;
+      return errorResult;
     } finally {
       await this.testFramework.cleanupAll();
     }
@@ -443,7 +442,13 @@ export class PipelineIntegration {
   async healthCheck(): Promise<{
     status: string;
     timestamp: string;
-    config: any;
+    config: {
+      projectName: string;
+      environment: string;
+      baseUrl: string;
+      testSuitesCount: number;
+      browsersCount: number;
+    };
   }> {
     return {
       status: "healthy",
@@ -451,9 +456,9 @@ export class PipelineIntegration {
       config: {
         projectName: this.config.projectName,
         environment: this.config.environment,
-        suiteCount: this.config.testSuites.length,
-        browserCount: this.config.browsers.length,
-        schedulingEnabled: this.config.scheduling.enabled,
+        baseUrl: this.config.baseUrl,
+        testSuitesCount: this.config.testSuites.length,
+        browsersCount: this.config.browsers.length,
       },
     };
   }

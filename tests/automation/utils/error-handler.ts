@@ -166,7 +166,9 @@ export class ErrorHandler {
     try {
       return await page.evaluate(() => {
         // Get console errors from the page context
-        return (window as any).consoleErrors || [];
+        return (
+          (window as Window & { consoleErrors?: string[] }).consoleErrors || []
+        );
       });
     } catch {
       return [];
@@ -177,7 +179,9 @@ export class ErrorHandler {
     try {
       return await page.evaluate(() => {
         // Get network errors from the page context
-        return (window as any).networkErrors || [];
+        return (
+          (window as Window & { networkErrors?: string[] }).networkErrors || []
+        );
       });
     } catch {
       return [];

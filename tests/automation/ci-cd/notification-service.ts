@@ -17,6 +17,18 @@ export interface FailureNotificationData {
   duration: number;
 }
 
+export interface WebhookNotificationData {
+  type: "start" | "completion" | "failure" | "test";
+  pipelineId: string;
+  environment: string;
+  timestamp: string;
+  data:
+    | StartNotificationData
+    | PipelineResult
+    | FailureNotificationData
+    | { message: string };
+}
+
 export class NotificationService {
   private emailTransporter?: nodemailer.Transporter;
 
@@ -48,7 +60,13 @@ export class NotificationService {
     await Promise.allSettled([
       this.sendEmailNotification("Test Pipeline Started", message),
       this.sendSlackNotification(message),
-      this.sendWebhookNotification({ type: "start", data }),
+      this.sendWebhookNotification({
+        type: "start",
+        pipelineId: data.pipelineId,
+        environment: data.environment,
+        timestamp: data.timestamp,
+        data,
+      }),
     ]);
   }
 
@@ -68,7 +86,13 @@ export class NotificationService {
         result
       ),
       this.sendSlackNotification(message),
-      this.sendWebhookNotification({ type: "completion", data: result }),
+      this.sendWebhookNotification({
+        type: "completion",
+        pipelineId: result.pipelineId,
+        environment: result.environment,
+        timestamp: result.timestamp,
+        data: result,
+      }),
     ]);
   }
 
@@ -79,7 +103,13 @@ export class NotificationService {
     await Promise.allSettled([
       this.sendEmailNotification("Test Pipeline Failed", message),
       this.sendSlackNotification(message, true), // Mark as urgent
-      this.sendWebhookNotification({ type: "failure", data }),
+      this.sendWebhookNotification({
+        type: "failure",
+        pipelineId: data.pipelineId,
+        environment: data.environment,
+        timestamp: new Date().toISOString(),
+        data,
+      }),
     ]);
   }
 
@@ -204,7 +234,9 @@ export class NotificationService {
     }
   }
 
-  private async sendWebhookNotification(data: any): Promise<void> {
+  private async sendWebhookNotification(
+    data: WebhookNotificationData
+  ): Promise<void> {
     if (!this.config.webhook.enabled || !this.config.webhook.url) {
       return;
     }
@@ -213,7 +245,6 @@ export class NotificationService {
       await axios.post(
         this.config.webhook.url,
         {
-          timestamp: new Date().toISOString(),
           source: "test-automation",
           ...data,
         },
@@ -285,7 +316,10 @@ export class NotificationService {
       try {
         await this.sendWebhookNotification({
           type: "test",
-          message: "Test notification from automation system",
+          pipelineId: "test-pipeline",
+          environment: "test",
+          timestamp: new Date().toISOString(),
+          data: { message: "Test notification from automation system" },
         });
         results.webhook = true;
       } catch (error) {

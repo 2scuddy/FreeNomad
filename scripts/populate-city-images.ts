@@ -75,7 +75,7 @@ class CityImagePopulator {
     console.log("Fetching cities from database...");
 
     try {
-      const whereClause: any = {};
+      const whereClause: Record<string, unknown> = {};
 
       if (this.options.featuredOnly) {
         whereClause.featured = true;
@@ -164,7 +164,17 @@ class CityImagePopulator {
     }
   }
 
-  private async processCity(city: CityWithImage, imageResult: any) {
+  private async processCity(
+    city: CityWithImage,
+    imageResult:
+      | {
+          success: boolean;
+          imageUrl?: string;
+          imageAttribution?: string;
+          error?: string;
+        }
+      | undefined
+  ) {
     const cityLabel = `${city.name}, ${city.country}`;
 
     try {

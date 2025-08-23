@@ -9,7 +9,6 @@ import {
 import axios from "axios";
 import {
   BrowserConfig,
-  DeviceProfile,
   TestExecutionConfig,
   PerformanceThresholds,
 } from "../config/browser-config";
@@ -25,10 +24,8 @@ import {
 import { ErrorHandler } from "../utils/error-handler";
 import { WaitStrategies } from "../utils/wait-strategies";
 
-// Define Axios types locally to avoid import issues
-type AxiosInstance = any;
-type AxiosRequestConfig = any;
-type AxiosResponse = any;
+// Use unknown for axios types to avoid compatibility issues
+type AxiosInstance = unknown;
 
 export interface TestCase {
   id: string;
@@ -91,7 +88,7 @@ export class TestFramework {
     this.axiosInstance = axios.create({
       timeout: 10000,
       validateStatus: () => true, // Don't throw on HTTP errors
-    });
+    }) as AxiosInstance;
 
     this.reporter = new TestReporter();
     this.performanceMonitor = new PerformanceMonitor(performanceThresholds);
@@ -104,7 +101,7 @@ export class TestFramework {
 
   private setupAxiosInterceptors(): void {
     // Request interceptor
-    this.axiosInstance.interceptors.request.use(
+    (this.axiosInstance as any).interceptors.request.use(
       (config: any) => {
         console.log(
           `API Request: ${config.method?.toUpperCase()} ${config.url}`
@@ -118,7 +115,7 @@ export class TestFramework {
     );
 
     // Response interceptor
-    this.axiosInstance.interceptors.response.use(
+    (this.axiosInstance as any).interceptors.response.use(
       (response: any) => {
         console.log(`API Response: ${response.status} ${response.config.url}`);
         return response;
@@ -384,13 +381,13 @@ export class TestFramework {
   private async executeApiCall(
     url: string,
     method: string = "GET"
-  ): Promise<any> {
-    const config: any = {
+  ): Promise<unknown> {
+    const config: { method: string; url: string } = {
       method: method.toLowerCase(),
       url,
     };
 
-    return await this.axiosInstance.request(config);
+    return await (this.axiosInstance as any).request(config);
   }
 
   private async takeScreenshot(page: Page, name: string): Promise<string> {

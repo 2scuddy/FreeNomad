@@ -3,11 +3,6 @@
 import { Suspense, lazy, ComponentType, useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface LazyWrapperProps {
-  fallback?: React.ReactNode;
-  className?: string;
-}
-
 // Generic lazy loading wrapper
 export function createLazyComponent<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,

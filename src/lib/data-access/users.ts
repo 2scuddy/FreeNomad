@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { DatabaseError, safeDbOperation } from "@/lib/db-utils";
+import { safeDbOperation } from "@/lib/db-utils";
 import {
   validateUserQuery,
-  validateUser,
   validateUpdateUserProfile,
 } from "@/lib/validations/user";
 

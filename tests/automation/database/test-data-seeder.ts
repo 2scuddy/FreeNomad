@@ -431,29 +431,53 @@ export class TestDataSeeder {
   /**
    * Get seeded data by type
    */
-  async getSeededCities(limit?: number): Promise<any[]> {
-    return await this.prisma.city.findMany({
+  async getSeededCities(limit?: number): Promise<SeededData["cities"]> {
+    const cities = await this.prisma.city.findMany({
       take: limit,
       orderBy: { createdAt: "asc" },
-    });
-  }
-
-  async getSeededUsers(limit?: number): Promise<any[]> {
-    return await this.prisma.user.findMany({
-      take: limit,
-      orderBy: { createdAt: "asc" },
-    });
-  }
-
-  async getSeededReviews(limit?: number): Promise<any[]> {
-    return await this.prisma.review.findMany({
-      take: limit,
-      orderBy: { createdAt: "asc" },
-      include: {
-        city: { select: { name: true } },
-        user: { select: { name: true } },
+      select: {
+        id: true,
+        name: true,
+        country: true,
+        costOfLiving: true,
+        internetSpeed: true,
+        safetyRating: true,
+        walkability: true,
+        featured: true,
+        verified: true,
       },
     });
+    return cities;
+  }
+
+  async getSeededUsers(limit?: number): Promise<SeededData["users"]> {
+    const users = await this.prisma.user.findMany({
+      take: limit,
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+    return users;
+  }
+
+  async getSeededReviews(limit?: number): Promise<SeededData["reviews"]> {
+    const reviews = await this.prisma.review.findMany({
+      take: limit,
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        rating: true,
+        title: true,
+        content: true,
+        cityId: true,
+        userId: true,
+      },
+    });
+    return reviews;
   }
 
   /**

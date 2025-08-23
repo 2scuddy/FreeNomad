@@ -5,21 +5,84 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations/user";
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+// Utility function to validate and normalize URLs with stricter validation
+function validateAndNormalizeUrl(url: string | undefined): string | undefined {
+  if (!url || url.trim() === "") return undefined;
+
+  try {
+    let normalizedUrl = url.trim();
+
+    // Basic validation before adding protocol - must contain a dot (except for localhost)
+    if (!normalizedUrl.includes(".") && !normalizedUrl.includes("localhost")) {
+      console.error("Invalid URL format:", url);
+      return undefined;
+    }
+
+    // Add protocol if missing
+    if (
+      !normalizedUrl.startsWith("http://") &&
+      !normalizedUrl.startsWith("https://")
+    ) {
+      normalizedUrl = `https://${normalizedUrl}`;
+    }
+
+    // Validate by creating URL object
+    const validatedUrl = new URL(normalizedUrl);
+
+    // Additional validation for hostname
+    if (!validatedUrl.hostname || validatedUrl.hostname.length < 3) {
+      console.error("Invalid hostname:", validatedUrl.hostname);
+      return undefined;
+    }
+
+    return validatedUrl.toString();
+  } catch (error) {
+    console.error("Invalid URL provided:", url, error);
+    return undefined;
+  }
+}
+
+// Get the base URL for NextAuth with proper validation
+function getNextAuthUrl(): string | undefined {
+  // In Vercel, NEXTAUTH_URL is automatically set, but we should validate it
+  const nextAuthUrl = process.env.NEXTAUTH_URL;
+  const vercelUrl = process.env.VERCEL_URL;
+
+  // Priority: NEXTAUTH_URL > VERCEL_URL > localhost fallback
+  if (nextAuthUrl) {
+    const validated = validateAndNormalizeUrl(nextAuthUrl);
+    if (validated) return validated;
+  }
+
+  if (vercelUrl) {
+    const validated = validateAndNormalizeUrl(vercelUrl);
+    if (validated) return validated;
+  }
+
+  // Fallback for development
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:3000";
+  }
+
+  console.warn(
+    "No valid NEXTAUTH_URL found. This may cause authentication issues."
+  );
+  return undefined;
+}
+
+// Enhanced NextAuth configuration with robust URL handling
+const nextAuthConfig = {
   adapter: PrismaAdapter(prisma),
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: "/auth/login",
     error: "/auth/error",
   },
+  // Add the validated URL if available
+  ...(getNextAuthUrl() && { url: getNextAuthUrl() }),
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -71,24 +134,24 @@ export const {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: any; user: any }) {
       if (user) {
-        token.role = (user as any).role;
-        token.emailVerified = (user as any).emailVerified;
+        token.role = user.role;
+        token.emailVerified = user.emailVerified;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       if (token) {
         session.user.id = token.sub!;
-        (session.user as any).role = token.role;
-        (session.user as any).emailVerified = token.emailVerified;
+        session.user.role = token.role;
+        session.user.emailVerified = token.emailVerified;
       }
       return session;
     },
   },
   events: {
-    async signIn({ user }) {
+    async signIn({ user }: { user: any }) {
       console.log("User signed in:", { userId: user.id, email: user.email });
     },
     async signOut() {
@@ -96,7 +159,10 @@ export const {
     },
   },
   debug: process.env.NODE_ENV === "development",
-});
+};
+
+export const { handlers, auth, signIn, signOut } = NextAuth(nextAuthConfig);
+export const { GET, POST } = handlers;
 
 // Helper function to get current user
 export async function getCurrentUser() {

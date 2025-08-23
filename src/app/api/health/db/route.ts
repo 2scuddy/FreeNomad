@@ -5,7 +5,7 @@ import {
   getConnectionPoolStats,
 } from "@/lib/prisma";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const startTime = Date.now();
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
         connected: false,
         responseTime: 0,
         version: "unknown",
-        poolStats: null as any,
+        poolStats: null as Record<string, unknown> | null,
       },
       checks: {
         connectivity: "unknown",
@@ -71,7 +71,10 @@ export async function GET(request: NextRequest) {
 
     // Get database version
     try {
-      const versionResult = (await prisma.$queryRaw`SELECT version()`) as any[];
+      const versionResult =
+        (await prisma.$queryRaw`SELECT version()`) as Array<{
+          version?: string;
+        }>;
       if (versionResult && versionResult[0]) {
         dbHealth.database.version = versionResult[0].version || "unknown";
       }

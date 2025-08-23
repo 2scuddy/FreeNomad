@@ -190,7 +190,7 @@ export class WaitStrategies {
     let idleStartTime = 0;
     const startTime = Date.now();
 
-    const requestHandler = (request: any) => {
+    const requestHandler = (request: { url: () => string }) => {
       const url = request.url();
       const shouldIgnore = ignoreUrls.some(ignoreUrl =>
         url.includes(ignoreUrl)
@@ -202,7 +202,7 @@ export class WaitStrategies {
       }
     };
 
-    const responseHandler = (response: any) => {
+    const responseHandler = (response: { url: () => string }) => {
       const url = response.url();
       const shouldIgnore = ignoreUrls.some(ignoreUrl =>
         url.includes(ignoreUrl)
@@ -386,7 +386,7 @@ export class WaitStrategies {
         if (result) {
           return;
         }
-      } catch (error) {
+      } catch {
         // Condition check failed, continue waiting
       }
 

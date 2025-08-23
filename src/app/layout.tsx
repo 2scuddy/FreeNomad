@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import { Providers } from "@/components/providers";
+import { ErrorBoundary } from "@/components/error-boundary";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,7 +46,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          {children}
+          <ErrorBoundary showDetails={process.env.NODE_ENV === "development"}>
+            {children}
+          </ErrorBoundary>
           <ServiceWorkerRegistration />
         </Providers>
       </body>
