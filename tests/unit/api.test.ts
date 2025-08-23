@@ -230,9 +230,8 @@ describe("/api/cities", () => {
     console.warn = jest.fn();
     console.error = jest.fn();
 
-    // Force the test environment to ensure fallback to mock data
-    const originalNodeEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "test";
+    // We don't need to modify NODE_ENV as it's already set to 'test' in the Jest environment
+    // Instead, we'll use the error=test query parameter to trigger the fallback behavior
 
     const request = createRequest(
       "http://localhost:3000/api/cities?error=test"
@@ -240,10 +239,9 @@ describe("/api/cities", () => {
     const response = await GET(request);
     const data = await response.json();
 
-    // Restore console functions and environment
+    // Restore console functions
     console.warn = originalConsoleWarn;
     console.error = originalConsoleError;
-    process.env.NODE_ENV = originalNodeEnv;
 
     // The API gracefully degrades to mock data when database is unavailable
     expect(response.status).toBe(200);
