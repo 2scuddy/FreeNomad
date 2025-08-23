@@ -30,87 +30,99 @@ jest.mock("../../src/lib/db-utils", () => {
   const originalModule = jest.requireActual("../../src/lib/db-utils") as any;
   return {
     ...originalModule,
-    paginate: jest.fn().mockImplementation(async (model: any, options: any, where?: any) => {
-      const mockData = [
-        {
-          id: "1",
-          name: "Bangkok",
-          country: "Thailand",
-          costOfLiving: 800,
-          internetSpeed: 50,
-          safetyRating: 7.5,
-          walkability: 6.8,
-          weather: 8.2,
-          culture: 9.0,
-          nightlife: 9.5,
-          averageRating: 4.2,
-          reviewCount: 89,
-          featured: true,
-          verified: true,
-          region: "Bangkok",
-          shortDescription: "Vibrant city with great food and culture",
-          description: "Bangkok offers an amazing blend of traditional and modern culture.",
-          imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: "2",
-          name: "Chiang Mai",
-          country: "Thailand",
-          costOfLiving: 600,
-          internetSpeed: 45,
-          safetyRating: 8.0,
-          walkability: 7.2,
-          weather: 8.5,
-          culture: 8.8,
-          nightlife: 7.0,
-          averageRating: 4.4,
-          reviewCount: 67,
-          featured: false,
-          verified: true,
-          region: "Chiang Mai",
-          shortDescription: "Peaceful mountain city with digital nomad community",
-          description: "Chiang Mai is perfect for digital nomads seeking tranquility.",
-          imageUrl: "https://images.unsplash.com/photo-1528181304800-259b08848526",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ];
-      
-      // Apply basic filtering based on options
-      let filteredData = [...mockData];
-      
-      if (where?.costOfLiving?.lte) {
-        filteredData = filteredData.filter(city => city.costOfLiving <= where.costOfLiving.lte);
-      }
-      
-      if (where?.OR) {
-        const searchTerm = where.OR.find((condition: any) => condition.name?.contains)?.name?.contains;
-        if (searchTerm) {
-          filteredData = filteredData.filter(city => 
-            city.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            city.country.toLowerCase().includes(searchTerm.toLowerCase())
+    paginate: jest
+      .fn()
+      .mockImplementation(async (model: any, options: any, where?: any) => {
+        const mockData = [
+          {
+            id: "1",
+            name: "Bangkok",
+            country: "Thailand",
+            costOfLiving: 800,
+            internetSpeed: 50,
+            safetyRating: 7.5,
+            walkability: 6.8,
+            weather: 8.2,
+            culture: 9.0,
+            nightlife: 9.5,
+            averageRating: 4.2,
+            reviewCount: 89,
+            featured: true,
+            verified: true,
+            region: "Bangkok",
+            shortDescription: "Vibrant city with great food and culture",
+            description:
+              "Bangkok offers an amazing blend of traditional and modern culture.",
+            imageUrl:
+              "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            id: "2",
+            name: "Chiang Mai",
+            country: "Thailand",
+            costOfLiving: 600,
+            internetSpeed: 45,
+            safetyRating: 8.0,
+            walkability: 7.2,
+            weather: 8.5,
+            culture: 8.8,
+            nightlife: 7.0,
+            averageRating: 4.4,
+            reviewCount: 67,
+            featured: false,
+            verified: true,
+            region: "Chiang Mai",
+            shortDescription:
+              "Peaceful mountain city with digital nomad community",
+            description:
+              "Chiang Mai is perfect for digital nomads seeking tranquility.",
+            imageUrl:
+              "https://images.unsplash.com/photo-1528181304800-259b08848526",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ];
+
+        // Apply basic filtering based on options
+        let filteredData = [...mockData];
+
+        if (where?.costOfLiving?.lte) {
+          filteredData = filteredData.filter(
+            city => city.costOfLiving <= where.costOfLiving.lte
           );
         }
-      }
-      
-      // Apply pagination
-      const skip = options.page ? (options.page - 1) * options.limit : 0;
-      const take = options.limit || 10;
-      const paginatedData = filteredData.slice(skip, skip + take);
-      
-      return {
-        data: paginatedData,
-        meta: {
-          total: filteredData.length,
-          page: options.page || 1,
-          limit: options.limit || 10,
-          totalPages: Math.ceil(filteredData.length / (options.limit || 10)),
-          hasMore: skip + take < filteredData.length,
-        },
-      };
-    }),
+
+        if (where?.OR) {
+          const searchTerm = where.OR.find(
+            (condition: any) => condition.name?.contains
+          )?.name?.contains;
+          if (searchTerm) {
+            filteredData = filteredData.filter(
+              city =>
+                city.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                city.country.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+          }
+        }
+
+        // Apply pagination
+        const skip = options.page ? (options.page - 1) * options.limit : 0;
+        const take = options.limit || 10;
+        const paginatedData = filteredData.slice(skip, skip + take);
+
+        return {
+          data: paginatedData,
+          meta: {
+            total: filteredData.length,
+            page: options.page || 1,
+            limit: options.limit || 10,
+            totalPages: Math.ceil(filteredData.length / (options.limit || 10)),
+            hasMore: skip + take < filteredData.length,
+          },
+        };
+      }),
   };
 });
 
@@ -218,6 +230,8 @@ describe("/api/cities", () => {
     expect(data.success).toBe(false);
     expect(data.error).toBeDefined();
     // Error could be a string or object, just check it exists
-    expect(typeof data.error === 'string' || typeof data.error === 'object').toBe(true);
+    expect(
+      typeof data.error === "string" || typeof data.error === "object"
+    ).toBe(true);
   });
 });

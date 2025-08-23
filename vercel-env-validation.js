@@ -4,7 +4,8 @@
 function validateEnvironmentVariables() {
   const errors = [];
   const warnings = [];
-  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  const isCI =
+    process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
   // const isVercel = process.env.VERCEL === '1'; // Reserved for future use
 
   // Required environment variables
@@ -21,9 +22,9 @@ function validateEnvironmentVariables() {
 
   // CI/CD fallback values
   const ciFallbacks = {
-    NEXTAUTH_SECRET: 'ci-test-secret-32-characters-long',
-    DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
-    NEXTAUTH_URL: 'http://localhost:3000'
+    NEXTAUTH_SECRET: "ci-test-secret-32-characters-long",
+    DATABASE_URL: "postgresql://test:test@localhost:5432/test",
+    NEXTAUTH_URL: "http://localhost:3000",
   };
 
   // Check required variables
@@ -37,9 +38,13 @@ function validateEnvironmentVariables() {
       }
     } else if (key === "NEXTAUTH_SECRET" && value.length < 32) {
       if (isCI) {
-        warnings.push(`${key} is shorter than recommended 32 characters (CI environment)`);
+        warnings.push(
+          `${key} is shorter than recommended 32 characters (CI environment)`
+        );
       } else {
-        errors.push(`${key} should be at least 32 characters long for security`);
+        errors.push(
+          `${key} should be at least 32 characters long for security`
+        );
       }
     }
   });

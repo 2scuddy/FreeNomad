@@ -70,34 +70,34 @@ function getBaseUrl() {
   if (process.env.NEXTAUTH_URL) {
     return process.env.NEXTAUTH_URL;
   }
-  
+
   // Vercel deployment
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  
+
   // Local development
   return "http://localhost:3000";
 }
 
 export const authOptions: NextAuthOptions = {
   // ... other configuration
-  
+
   callbacks: {
     async redirect({ url, baseUrl }) {
       // Ensure we use the correct base URL
       const resolvedBaseUrl = getBaseUrl();
-      
+
       // If url is relative, prepend baseUrl
       if (url.startsWith("/")) {
         return `${resolvedBaseUrl}${url}`;
       }
-      
+
       // If url is on the same origin, allow it
       if (new URL(url).origin === resolvedBaseUrl) {
         return url;
       }
-      
+
       // Default to base URL
       return resolvedBaseUrl;
     },
@@ -150,7 +150,7 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/api/auth")) {
     const host = request.headers.get("host");
     const protocol = request.headers.get("x-forwarded-proto") || "http";
-    
+
     // Ensure proper URL format
     if (host && !process.env.NEXTAUTH_URL?.startsWith("http")) {
       const baseUrl = `${protocol}://${host}`;
@@ -158,12 +158,12 @@ export function middleware(request: NextRequest) {
       process.env.NEXTAUTH_URL = baseUrl;
     }
   }
-  
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/api/auth/:path*"]
+  matcher: ["/api/auth/:path*"],
 };
 ```
 
@@ -204,14 +204,14 @@ try {
   export { handler as GET, handler as POST };
 } catch (error) {
   console.error("NextAuth configuration error:", error);
-  
+
   // Fallback handler
   export function GET() {
     return new Response("Authentication service temporarily unavailable", {
       status: 503,
     });
   }
-  
+
   export function POST() {
     return new Response("Authentication service temporarily unavailable", {
       status: 503,
@@ -252,15 +252,15 @@ Create a validation script to test URL configuration:
 
 ```javascript
 // scripts/validate-nextauth.js
-const { URL } = require('url');
+const { URL } = require("url");
 
 function validateNextAuthURL(url) {
   try {
     const parsed = new URL(url);
-    console.log('✅ Valid URL:', parsed.href);
+    console.log("✅ Valid URL:", parsed.href);
     return true;
   } catch (error) {
-    console.error('❌ Invalid URL:', url, error.message);
+    console.error("❌ Invalid URL:", url, error.message);
     return false;
   }
 }
@@ -268,9 +268,9 @@ function validateNextAuthURL(url) {
 // Test different URL formats
 const testUrls = [
   process.env.NEXTAUTH_URL,
-  'https://freenomad.vercel.app',
-  'http://localhost:3000',
-  'free-nomad-sigma.vercel.app', // This should fail
+  "https://freenomad.vercel.app",
+  "http://localhost:3000",
+  "free-nomad-sigma.vercel.app", // This should fail
 ];
 
 testUrls.forEach(url => {
@@ -291,6 +291,7 @@ testUrls.forEach(url => {
 
 **Problem**: OAuth providers reject redirect URLs
 **Solution**: Update OAuth app settings with correct callback URLs:
+
 - Google: `https://yourdomain.com/api/auth/callback/google`
 - GitHub: `https://yourdomain.com/api/auth/callback/github`
 
@@ -370,13 +371,13 @@ Implement error tracking for authentication issues:
 export const authOptions: NextAuthOptions = {
   events: {
     async signIn({ user, account, profile }) {
-      console.log('User signed in:', user.email);
+      console.log("User signed in:", user.email);
     },
     async signOut({ session, token }) {
-      console.log('User signed out:', session?.user?.email);
+      console.log("User signed out:", session?.user?.email);
     },
     async error({ error }) {
-      console.error('NextAuth error:', error);
+      console.error("NextAuth error:", error);
       // Send to error tracking service
     },
   },
@@ -392,7 +393,7 @@ Monitor authentication performance:
 const authStart = Date.now();
 // ... auth operation
 const authDuration = Date.now() - authStart;
-console.log('Auth operation took:', authDuration, 'ms');
+console.log("Auth operation took:", authDuration, "ms");
 ```
 
 ### 3. Health Checks
@@ -406,20 +407,20 @@ export async function GET() {
     // Test NextAuth configuration
     const baseUrl = process.env.NEXTAUTH_URL;
     if (!baseUrl) {
-      throw new Error('NEXTAUTH_URL not configured');
+      throw new Error("NEXTAUTH_URL not configured");
     }
-    
+
     new URL(baseUrl); // Validate URL format
-    
+
     return Response.json({
-      status: 'healthy',
+      status: "healthy",
       nextauth_url: baseUrl,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     return Response.json(
       {
-        status: 'unhealthy',
+        status: "unhealthy",
         error: error.message,
         timestamp: new Date().toISOString(),
       },

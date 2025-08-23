@@ -56,7 +56,6 @@
     "db:test": "tsx scripts/test-db-connection.ts",
     "db:test:neon": "tsx scripts/test-neon-connection.ts",
     "db:test:dev": "tsx scripts/test-dev-connection.ts",
-
     "db:deploy:production": "tsx scripts/deploy-production-data.ts production",
     "db:deploy:staging": "tsx scripts/deploy-production-data.ts staging",
     "db:deploy:development": "tsx scripts/deploy-production-data.ts development",
@@ -85,11 +84,9 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
     "@stackframe/stack": "^2.8.32",
-
     "@types/bcryptjs": "^2.4.6",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^7.0.1",
-
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
