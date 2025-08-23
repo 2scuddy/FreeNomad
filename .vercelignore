@@ -19,7 +19,7 @@ coverage/
 
 # Development scripts
 test-nextauth-fix.js
-vercel-env-validation.js
+# vercel-env-validation.js - needed for build command
 
 # IDE files
 .vscode/
