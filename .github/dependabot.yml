@@ -1,0 +1,102 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "maintainer"
+    assignees:
+      - "maintainer"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    # Group updates for better management
+    groups:
+      production-dependencies:
+        patterns:
+          - "@prisma/*"
+          - "next"
+          - "react"
+          - "react-dom"
+          - "next-auth"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        patterns:
+          - "@types/*"
+          - "eslint*"
+          - "prettier"
+          - "typescript"
+          - "jest"
+          - "@testing-library/*"
+          - "playwright"
+        update-types:
+          - "minor"
+          - "patch"
+      security-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "security"
+    # Ignore specific packages that require manual updates
+    ignore:
+      - dependency-name: "node"
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "maintainer"
+    assignees:
+      - "maintainer"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "github-actions"
+      - "automated"
+    # Group GitHub Actions updates
+    groups:
+      github-actions:
+        patterns:
+          - "actions/*"
+          - "github/*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Enable version updates for Docker (if using containers)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "maintainer"
+    assignees:
+      - "maintainer"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    labels:
+      - "docker"
+      - "automated"
