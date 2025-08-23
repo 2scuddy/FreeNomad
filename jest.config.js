@@ -14,6 +14,7 @@ const customJestConfig = {
   testEnvironment: "jest-environment-jsdom",
 
   // Force single worker in CI to avoid mock isolation issues
+  // This is critical for consistent test behavior in CI environments
   maxWorkers: process.env.CI ? 1 : "50%",
 
   // Module name mapping for absolute imports

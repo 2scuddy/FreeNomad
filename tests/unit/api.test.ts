@@ -17,8 +17,59 @@ const mockPrisma = {
   city: {
     findMany: jest.fn() as any,
     count: jest.fn() as any,
+    findUnique: jest.fn() as any,
   },
 };
+
+// Create mock city data that will be used consistently across tests
+const mockCityData = [
+  {
+    id: "1",
+    name: "Bangkok",
+    country: "Thailand",
+    costOfLiving: 800,
+    internetSpeed: 50,
+    safetyRating: 7.5,
+    walkability: 6.8,
+    weather: 8.2,
+    culture: 9.0,
+    nightlife: 9.5,
+    averageRating: 4.2,
+    reviewCount: 89,
+    featured: true,
+    verified: true,
+    region: "Bangkok",
+    shortDescription: "Vibrant city with great food and culture",
+    description:
+      "Bangkok offers an amazing blend of traditional and modern culture.",
+    imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    name: "Chiang Mai",
+    country: "Thailand",
+    costOfLiving: 600,
+    internetSpeed: 45,
+    safetyRating: 8.0,
+    walkability: 7.2,
+    weather: 8.5,
+    culture: 8.8,
+    nightlife: 7.0,
+    averageRating: 4.4,
+    reviewCount: 67,
+    featured: false,
+    verified: true,
+    region: "Chiang Mai",
+    shortDescription: "Peaceful mountain city with digital nomad community",
+    description:
+      "Chiang Mai is perfect for digital nomads seeking tranquility.",
+    imageUrl: "https://images.unsplash.com/photo-1528181304800-259b08848526",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
 
 // Mock the prisma module before importing
 jest.mock("../../src/lib/prisma", () => ({
@@ -31,110 +82,62 @@ jest.mock("../../src/lib/db-utils", () => {
   return {
     ...originalModule,
     safeDbOperation: jest.fn().mockImplementation(async (operation: any) => {
-      // Check if we're in an error test scenario
-      if (process.env.NODE_ENV === "test") {
-        try {
-          return await operation();
-        } catch (error) {
-          // Re-throw the error to trigger the catch block in getCities
-          throw error;
-        }
+      try {
+        return await operation();
+      } catch (error) {
+        // Re-throw the error to trigger the catch block in getCities
+        throw error;
       }
-      return await operation();
     }),
     paginate: jest
       .fn()
-      .mockImplementation(async (model: any, options: any, where?: any) => {
-        const mockData = [
-          {
-            id: "1",
-            name: "Bangkok",
-            country: "Thailand",
-            costOfLiving: 800,
-            internetSpeed: 50,
-            safetyRating: 7.5,
-            walkability: 6.8,
-            weather: 8.2,
-            culture: 9.0,
-            nightlife: 9.5,
-            averageRating: 4.2,
-            reviewCount: 89,
-            featured: true,
-            verified: true,
-            region: "Bangkok",
-            shortDescription: "Vibrant city with great food and culture",
-            description:
-              "Bangkok offers an amazing blend of traditional and modern culture.",
-            imageUrl:
-              "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: "2",
-            name: "Chiang Mai",
-            country: "Thailand",
-            costOfLiving: 600,
-            internetSpeed: 45,
-            safetyRating: 8.0,
-            walkability: 7.2,
-            weather: 8.5,
-            culture: 8.8,
-            nightlife: 7.0,
-            averageRating: 4.4,
-            reviewCount: 67,
-            featured: false,
-            verified: true,
-            region: "Chiang Mai",
-            shortDescription:
-              "Peaceful mountain city with digital nomad community",
-            description:
-              "Chiang Mai is perfect for digital nomads seeking tranquility.",
-            imageUrl:
-              "https://images.unsplash.com/photo-1528181304800-259b08848526",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ];
+      .mockImplementation(
+        async (model: any, options: any, where?: any, orderBy?: any) => {
+          // Use the consistent mockCityData instead of redefining it
+          let filteredData = [...mockCityData];
 
-        // Apply basic filtering based on options
-        let filteredData = [...mockData];
-
-        if (where?.costOfLiving?.lte) {
-          filteredData = filteredData.filter(
-            city => city.costOfLiving <= where.costOfLiving.lte
-          );
-        }
-
-        if (where?.OR) {
-          const searchTerm = where.OR.find(
-            (condition: any) => condition.name?.contains
-          )?.name?.contains;
-          if (searchTerm) {
+          if (where?.costOfLiving?.lte) {
             filteredData = filteredData.filter(
-              city =>
-                city.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                city.country.toLowerCase().includes(searchTerm.toLowerCase())
+              city => city.costOfLiving <= where.costOfLiving.lte
             );
           }
+
+          if (where?.OR) {
+            const searchTerm = where.OR.find(
+              (condition: any) => condition.name?.contains
+            )?.name?.contains;
+            if (searchTerm) {
+              filteredData = filteredData.filter(
+                city =>
+                  city.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  city.country.toLowerCase().includes(searchTerm.toLowerCase())
+              );
+            }
+          }
+
+          // Apply pagination
+          const skip = options.page ? (options.page - 1) * options.limit : 0;
+          const take = options.limit || 10;
+          const paginatedData = filteredData.slice(skip, skip + take);
+
+          return {
+            data: paginatedData,
+            meta: {
+              total: filteredData.length,
+              page: options.page || 1,
+              limit: options.limit || 10,
+              totalPages: Math.ceil(
+                filteredData.length / (options.limit || 10)
+              ),
+              hasMore: skip + take < filteredData.length,
+            },
+          };
         }
-
-        // Apply pagination
-        const skip = options.page ? (options.page - 1) * options.limit : 0;
-        const take = options.limit || 10;
-        const paginatedData = filteredData.slice(skip, skip + take);
-
-        return {
-          data: paginatedData,
-          meta: {
-            total: filteredData.length,
-            page: options.page || 1,
-            limit: options.limit || 10,
-            totalPages: Math.ceil(filteredData.length / (options.limit || 10)),
-            hasMore: skip + take < filteredData.length,
-          },
-        };
-      }),
+      ),
+    getRecordOrThrow: jest.fn(),
+    createRangeFilter: jest.fn(),
+    createSortOrder: jest.fn(),
+    DatabaseError: jest.fn(),
   };
 });
 
@@ -145,56 +148,12 @@ describe("/api/cities", () => {
     jest.clearAllMocks();
     mockPrisma.city.findMany.mockClear();
     mockPrisma.city.count.mockClear();
-    
+
     // Set default mock implementations to ensure data is returned
-    mockPrisma.city.findMany.mockResolvedValue([
-      {
-        id: "1",
-        name: "Bangkok",
-        country: "Thailand",
-        costOfLiving: 800,
-        internetSpeed: 50,
-        safetyRating: 7.5,
-        walkability: 6.8,
-        weather: 8.2,
-        culture: 9.0,
-        nightlife: 9.5,
-        averageRating: 4.2,
-        reviewCount: 89,
-        featured: true,
-        verified: true,
-        region: "Bangkok",
-        shortDescription: "Vibrant city with great food and culture",
-        description: "Bangkok offers an amazing blend of traditional and modern culture.",
-        imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: "2",
-        name: "Chiang Mai",
-        country: "Thailand",
-        costOfLiving: 600,
-        internetSpeed: 45,
-        safetyRating: 8.0,
-        walkability: 7.2,
-        weather: 8.5,
-        culture: 8.8,
-        nightlife: 7.0,
-        averageRating: 4.4,
-        reviewCount: 67,
-        featured: false,
-        verified: true,
-        region: "Chiang Mai",
-        shortDescription: "Peaceful mountain city with digital nomad community",
-        description: "Chiang Mai is perfect for digital nomads seeking tranquility.",
-        imageUrl: "https://images.unsplash.com/photo-1528181304800-259b08848526",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ]);
-     mockPrisma.city.count.mockResolvedValue(2);
-   });
+    // Use the consistent mockCityData instead of redefining it
+    mockPrisma.city.findMany.mockResolvedValue(mockCityData);
+    mockPrisma.city.count.mockResolvedValue(mockCityData.length);
+  });
 
   it("should return cities with default pagination", async () => {
     const request = createRequest("http://localhost:3000/api/cities");
@@ -265,11 +224,26 @@ describe("/api/cities", () => {
       new Error("Database connection failed")
     );
 
+    // Mock the console.warn and console.error to prevent test output pollution
+    const originalConsoleWarn = console.warn;
+    const originalConsoleError = console.error;
+    console.warn = jest.fn();
+    console.error = jest.fn();
+
+    // Force the test environment to ensure fallback to mock data
+    const originalNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "test";
+
     const request = createRequest(
       "http://localhost:3000/api/cities?error=test"
     );
     const response = await GET(request);
     const data = await response.json();
+
+    // Restore console functions and environment
+    console.warn = originalConsoleWarn;
+    console.error = originalConsoleError;
+    process.env.NODE_ENV = originalNodeEnv;
 
     // The API gracefully degrades to mock data when database is unavailable
     expect(response.status).toBe(200);
