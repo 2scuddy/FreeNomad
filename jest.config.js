@@ -16,6 +16,7 @@ const customJestConfig = {
   // Module name mapping for absolute imports
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^next-auth/react$": "<rootDir>/src/__mocks__/next-auth/react.js",
   },
 
   // Test file patterns
