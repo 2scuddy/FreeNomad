@@ -6,12 +6,17 @@ on:
   pull_request:
     branches: [main]
 
-# Global permissions - restrict to minimum required
+# Enhanced permissions for private repositories
 permissions:
   contents: read
   security-events: write
   actions: read
   id-token: write
+  pull-requests: read
+  issues: read
+  repository-projects: read
+  statuses: read
+  checks: write
 
 env:
   NODE_VERSION: "20"
@@ -25,11 +30,20 @@ jobs:
       contents: read
       security-events: write
       actions: read
+      pull-requests: read
+      issues: read
+      repository-projects: read
+      statuses: read
+      checks: write
     steps:
       - name: Checkout code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
+          # Enhanced checkout for private repositories
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          persist-credentials: true
+          submodules: recursive
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.32.0
@@ -48,6 +62,12 @@ jobs:
         with:
           sarif_file: "trivy-results.sarif"
           category: "trivy-security-scan"
+          # Enhanced authentication for private repositories
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Wait for processing to complete
+          wait-for-processing: true
+          # Add repository context for private repos
+          checkout_path: ${{ github.workspace }}
 
   # Code quality and testing
   test:
