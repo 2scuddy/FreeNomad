@@ -15,7 +15,6 @@ permissions:
 
 env:
   NODE_VERSION: "20"
-  PNPM_VERSION: "8"
 
 jobs:
   # Security and dependency scanning
@@ -93,27 +92,34 @@ jobs:
           npx prisma db push
 
       - name: Run ESLint
-        run: npm run lint
+        run: npm run lint:check
+        continue-on-error: false
 
       - name: Run Prettier check
         run: npm run format:check
+        continue-on-error: false
 
       - name: Run TypeScript check
         run: npm run type-check
+        continue-on-error: false
 
       - name: Run tests
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'test-secret-fallback' }}
           NEXTAUTH_URL: http://localhost:3000
+          NODE_ENV: test
         run: npm run test
+        continue-on-error: false
 
       - name: Build application
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'test-secret-fallback' }}
           NEXTAUTH_URL: http://localhost:3000
+          NODE_ENV: production
         run: npm run build
+        continue-on-error: false
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.5
@@ -132,6 +138,20 @@ jobs:
       contents: read
       actions: read
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: freenomad_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - name: Checkout code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -145,11 +165,27 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Setup test database
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
+        run: |
+          npx prisma generate
+          npx prisma db push
+
       - name: Download build artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: build-files
           path: .next/
+        continue-on-error: true
+
+      - name: Run performance tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'test-secret-fallback' }}
+          NEXTAUTH_URL: http://localhost:3000
+        run: npm run test:e2e:accessibility
+        continue-on-error: true
 
   # Build and package for deployment
   package:
@@ -174,10 +210,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Setup production database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/freenomad_prod' }}
+        run: |
+          npx prisma generate
+        continue-on-error: true
+
       - name: Build application
         env:
           NODE_ENV: production
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/freenomad_prod' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'production-secret-required' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'https://your-domain.com' }}
         run: npm run build
+        continue-on-error: false
 
       - name: Create deployment package
         run: |
@@ -199,6 +246,7 @@ jobs:
       - name: Comment build success
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.rest.repos.createCommitComment({
               owner: context.repo.owner,
@@ -206,6 +254,7 @@ jobs:
               commit_sha: context.sha,
               body: '✅ Build completed successfully. Deployment package ready.'
             })
+        continue-on-error: true
 
   # Notify on failure
   notify:
@@ -220,6 +269,7 @@ jobs:
       - name: Notify failure
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.rest.repos.createCommitComment({
               owner: context.repo.owner,
@@ -227,3 +277,4 @@ jobs:
               commit_sha: context.sha,
               body: '❌ CI pipeline failed. Please check the workflow logs.'
             })
+        continue-on-error: true
