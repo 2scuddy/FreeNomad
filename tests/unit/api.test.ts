@@ -156,13 +156,16 @@ describe("/api/cities", () => {
   });
 
   it("should return cities with default pagination", async () => {
+    // Mock Prisma to return data successfully
+    mockPrisma.city.findMany.mockResolvedValue(mockCityData);
+    mockPrisma.city.count.mockResolvedValue(mockCityData.length);
+
     const request = createRequest("http://localhost:3000/api/cities");
     const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
-    // When database is unavailable, it falls back to mock data
     expect(data.data).toBeDefined();
     expect(Array.isArray(data.data)).toBe(true);
     expect(data.data.length).toBeGreaterThan(0);
@@ -215,35 +218,14 @@ describe("/api/cities", () => {
   });
 
   it("should handle database errors gracefully", async () => {
-    // Clear previous mocks and set up error scenario
-    jest.clearAllMocks();
-    mockPrisma.city.findMany.mockRejectedValue(
-      new Error("Database connection failed")
-    );
-    mockPrisma.city.count.mockRejectedValue(
-      new Error("Database connection failed")
-    );
+    // Mock safeDbOperation to throw an error to trigger fallback
+    const { safeDbOperation } = require("../../src/lib/db-utils");
+    safeDbOperation.mockRejectedValue(new Error("Database connection failed"));
 
-    // Mock the console.warn and console.error to prevent test output pollution
-    const originalConsoleWarn = console.warn;
-    const originalConsoleError = console.error;
-    console.warn = jest.fn();
-    console.error = jest.fn();
-
-    // We don't need to modify NODE_ENV as it's already set to 'test' in the Jest environment
-    // Instead, we'll use the error=test query parameter to trigger the fallback behavior
-
-    const request = createRequest(
-      "http://localhost:3000/api/cities?error=test"
-    );
+    const request = createRequest("http://localhost:3000/api/cities");
     const response = await GET(request);
     const data = await response.json();
 
-    // Restore console functions
-    console.warn = originalConsoleWarn;
-    console.error = originalConsoleError;
-
-    // The API gracefully degrades to mock data when database is unavailable
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(Array.isArray(data.data)).toBe(true);
