@@ -13,6 +13,9 @@ const customJestConfig = {
   // Test environment
   testEnvironment: "jest-environment-jsdom",
 
+  // Force single worker in CI to avoid mock isolation issues
+  maxWorkers: process.env.CI ? 1 : "50%",
+
   // Module name mapping for absolute imports
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",

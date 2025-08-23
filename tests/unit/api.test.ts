@@ -145,7 +145,56 @@ describe("/api/cities", () => {
     jest.clearAllMocks();
     mockPrisma.city.findMany.mockClear();
     mockPrisma.city.count.mockClear();
-  });
+    
+    // Set default mock implementations to ensure data is returned
+    mockPrisma.city.findMany.mockResolvedValue([
+      {
+        id: "1",
+        name: "Bangkok",
+        country: "Thailand",
+        costOfLiving: 800,
+        internetSpeed: 50,
+        safetyRating: 7.5,
+        walkability: 6.8,
+        weather: 8.2,
+        culture: 9.0,
+        nightlife: 9.5,
+        averageRating: 4.2,
+        reviewCount: 89,
+        featured: true,
+        verified: true,
+        region: "Bangkok",
+        shortDescription: "Vibrant city with great food and culture",
+        description: "Bangkok offers an amazing blend of traditional and modern culture.",
+        imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "2",
+        name: "Chiang Mai",
+        country: "Thailand",
+        costOfLiving: 600,
+        internetSpeed: 45,
+        safetyRating: 8.0,
+        walkability: 7.2,
+        weather: 8.5,
+        culture: 8.8,
+        nightlife: 7.0,
+        averageRating: 4.4,
+        reviewCount: 67,
+        featured: false,
+        verified: true,
+        region: "Chiang Mai",
+        shortDescription: "Peaceful mountain city with digital nomad community",
+        description: "Chiang Mai is perfect for digital nomads seeking tranquility.",
+        imageUrl: "https://images.unsplash.com/photo-1528181304800-259b08848526",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    ]);
+     mockPrisma.city.count.mockResolvedValue(2);
+   });
 
   it("should return cities with default pagination", async () => {
     const request = createRequest("http://localhost:3000/api/cities");
