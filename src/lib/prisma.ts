@@ -1,20 +1,42 @@
 import { PrismaClient } from "../generated/prisma";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import ws from "ws";
+
+// Configure Neon for serverless environments
+if (typeof window === "undefined") {
+  neonConfig.webSocketConstructor = ws;
+}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 function createPrismaClient() {
+  // Use Neon serverless adapter for better Vercel compatibility
+  const connectionString = process.env.DATABASE_URL;
+
+  if (!connectionString) {
+    throw new Error("DATABASE_URL environment variable is not set");
+  }
+
+  // Create connection pool with optimized settings for serverless
+  const pool = new Pool({
+    connectionString,
+    // Optimize for serverless: fewer connections, faster timeouts
+    max: 1, // Single connection for serverless functions
+    idleTimeoutMillis: 1000, // Close idle connections quickly
+    connectionTimeoutMillis: 5000, // 5 second connection timeout
+  });
+
+  const adapter = new PrismaNeon(pool);
+
   return new PrismaClient({
+    adapter,
     log:
       process.env.NODE_ENV === "development"
         ? ["query", "info", "warn", "error"]
         : ["error"],
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
   });
 }
 
@@ -28,11 +50,17 @@ if (process.env.NODE_ENV !== "production") {
 // Note: Graceful shutdown handlers removed for Edge Runtime compatibility
 // In production, connection cleanup is handled by the deployment platform
 
-// Database health check
+// Database health check optimized for serverless
 export async function checkDatabaseHealth(): Promise<boolean> {
   try {
-    await prisma.$queryRaw`SELECT 1`;
-    return true;
+    // Use a simple query with timeout for serverless environments
+    const result = await Promise.race([
+      prisma.$queryRaw`SELECT 1 as health`,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Health check timeout")), 3000)
+      ),
+    ]);
+    return Array.isArray(result) && result.length > 0;
   } catch (error) {
     console.error("Database health check failed:", error);
     return false;
