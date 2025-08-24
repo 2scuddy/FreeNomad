@@ -166,8 +166,6 @@ jobs:
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'test-secret-fallback' }}
           NEXTAUTH_URL: http://localhost:3000
           NODE_ENV: production
-          # Stack Auth configuration for CI/CD builds
-          NEXT_PUBLIC_STACK_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_STACK_PROJECT_ID || 'ci-test-project-id' }}
         run: npm run build
         continue-on-error: false
         timeout-minutes: 20

@@ -87,8 +87,6 @@ export class TestFramework {
     this.waitStrategies = new WaitStrategies();
   }
 
-
-
   async initializeBrowser(browserConfig: BrowserConfig): Promise<string> {
     const browserId = `${browserConfig.name}-${Date.now()}`;
 
@@ -327,8 +325,6 @@ export class TestFramework {
         await this.takeScreenshot(page, `${step.action}-${Date.now()}`);
         break;
 
-
-
       default:
         throw new Error(`Unknown test step action: ${step.action}`);
     }
@@ -337,8 +333,6 @@ export class TestFramework {
       await this.takeScreenshot(page, `step-${step.action}-${Date.now()}`);
     }
   }
-
-
 
   private async takeScreenshot(page: Page, name: string): Promise<string> {
     const screenshotPath = `test-results/screenshots/${name}.png`;

@@ -159,7 +159,7 @@ class SimpleBrowserAutomation {
       console.log("📡 Testing API endpoints...");
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
+
       let response;
       try {
         response = await fetch("http://localhost:3000/api/cities", {
@@ -168,9 +168,11 @@ class SimpleBrowserAutomation {
       } finally {
         clearTimeout(timeoutId);
       }
-      
+
       if (!response.ok && response.status >= 500) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `API request failed: ${response.status} ${response.statusText}`
+        );
       }
 
       console.log(`API Response: ${response.status} ${response.statusText}`);

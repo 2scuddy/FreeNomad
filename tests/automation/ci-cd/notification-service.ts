@@ -227,9 +227,9 @@ export class NotificationService {
       };
 
       await fetch(this.config.slack.webhookUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
@@ -249,10 +249,10 @@ export class NotificationService {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
+
       try {
         await fetch(this.config.webhook.url, {
-          method: 'POST',
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             ...(this.config.webhook.headers || {}),
