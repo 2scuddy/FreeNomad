@@ -200,34 +200,69 @@ jobs:
             echo "alias=" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check Vercel Token
+        id: check-token
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "token-available=false" >> $GITHUB_OUTPUT
+            echo "⚠️ VERCEL_TOKEN secret is not configured. Skipping Vercel deployment."
+            echo "To enable Vercel deployment, add VERCEL_TOKEN to repository secrets."
+          else
+            echo "token-available=true" >> $GITHUB_OUTPUT
+            echo "✅ VERCEL_TOKEN is configured."
+          fi
+
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=${{ steps.env-name.outputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
+        if: steps.check-token.outputs.token-available == 'true'
+        run: vercel pull --yes --environment=${{ steps.env-name.outputs.environment }} --token="${{ secrets.VERCEL_TOKEN }}"
         continue-on-error: true
 
       - name: Build Project Artifacts
-        run: vercel build ${{ steps.env-name.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }}
+        if: steps.check-token.outputs.token-available == 'true'
+        run: vercel build ${{ steps.env-name.outputs.alias }} --token="${{ secrets.VERCEL_TOKEN }}"
         timeout-minutes: 10
         continue-on-error: false
 
       - name: Deploy Project Artifacts to Vercel
         id: deploy
+        if: steps.check-token.outputs.token-available == 'true'
         run: |
-          url=$(vercel deploy --prebuilt ${{ steps.env-name.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }})
+          url=$(vercel deploy --prebuilt ${{ steps.env-name.outputs.alias }} --token="${{ secrets.VERCEL_TOKEN }}")
           echo "deployment-url=$url" >> $GITHUB_OUTPUT
           echo "Deployment URL: $url"
         timeout-minutes: 15
         continue-on-error: false
+
+      - name: Skip Vercel Deployment
+        if: steps.check-token.outputs.token-available == 'false'
+        run: |
+          echo "deployment-url=https://github.com/${{ github.repository }}/tree/${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "⚠️ Vercel deployment skipped due to missing VERCEL_TOKEN secret."
+          echo "📖 To enable Vercel deployment:"
+          echo "   1. Get your Vercel token from https://vercel.com/account/tokens"
+          echo "   2. Add it as VERCEL_TOKEN in repository secrets"
+          echo "   3. Also add VERCEL_ORG_ID and VERCEL_PROJECT_ID secrets"
 
       - name: Comment deployment URL on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
+            const deploymentUrl = '${{ steps.deploy.outputs.deployment-url }}';
+            const tokenAvailable = '${{ steps.check-token.outputs.token-available }}';
+            
+            let body;
+            if (tokenAvailable === 'true' && deploymentUrl) {
+              body = `🚀 **Deployment Preview**: ${deploymentUrl}\n\n**Branch**: \`${{ github.head_ref }}\`\n**Environment**: ${{ steps.env-name.outputs.environment }}`;
+            } else {
+              body = `⚠️ **Deployment Skipped**: Vercel token not configured\n\n**Branch**: \`${{ github.head_ref }}\`\n**Status**: Build successful, but deployment requires VERCEL_TOKEN secret\n\n📖 To enable deployments, add VERCEL_TOKEN to repository secrets.`;
+            }
+            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 **Deployment Preview**: ${{ steps.deploy.outputs.deployment-url }}\n\n**Branch**: \`${{ github.head_ref }}\`\n**Environment**: ${{ steps.env-name.outputs.environment }}`
+              body: body
             })
 
   # Security and dependency checks
@@ -306,10 +341,10 @@ jobs:
         run: |
           if [[ "${{ needs.deploy-vercel.result }}" == "success" && "${{ needs.integration-tests.result }}" != "failure" && "${{ needs.e2e-tests.result }}" != "failure" ]]; then
             echo "status=success" >> $GITHUB_OUTPUT
-            echo "message=✅ Deployment successful" >> $GITHUB_OUTPUT
+            echo "message=✅ Build and tests successful" >> $GITHUB_OUTPUT
           else
             echo "status=failure" >> $GITHUB_OUTPUT
-            echo "message=❌ Deployment failed" >> $GITHUB_OUTPUT
+            echo "message=❌ Build or tests failed" >> $GITHUB_OUTPUT
           fi
 
       - name: Create deployment status
