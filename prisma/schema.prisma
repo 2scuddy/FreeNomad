@@ -7,6 +7,10 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
+  // Optimize for serverless environments
+  engineType = "library"
+  // Enable edge runtime compatibility
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {

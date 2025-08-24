@@ -201,118 +201,125 @@ export async function getCities(query: CityQuery) {
       throw new Error("Using mock data for unit tests");
     }
 
-    return await safeDbOperation(async () => {
-      const {
-        page,
-        limit,
-        search,
-        country,
-        featured,
-        verified,
-        minCost,
-        maxCost,
-        minInternet,
-        minSafety,
-        minWalkability,
-        sortBy,
-        sortOrder,
-      } = query;
+    // Optimized database operation with timeout for serverless
+    return (await Promise.race([
+      safeDbOperation(async () => {
+        const {
+          page,
+          limit,
+          search,
+          country,
+          featured,
+          verified,
+          minCost,
+          maxCost,
+          minInternet,
+          minSafety,
+          minWalkability,
+          sortBy,
+          sortOrder,
+        } = query;
 
-      // Build where clause
-      const where: CityWhereClause = {};
+        // Build where clause
+        const where: CityWhereClause = {};
 
-      // Search filter
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: "insensitive" } },
-          { country: { contains: search, mode: "insensitive" } },
-          { region: { contains: search, mode: "insensitive" } },
-          { description: { contains: search, mode: "insensitive" } },
-        ];
-      }
-
-      // Country filter
-      if (country) {
-        where.country = { equals: country, mode: "insensitive" };
-      }
-
-      // Boolean filters
-      if (featured !== undefined) {
-        where.featured = featured;
-      }
-      if (verified !== undefined) {
-        where.verified = verified;
-      }
-
-      // Range filters
-      if (minCost !== undefined || maxCost !== undefined) {
-        where.costOfLiving = createRangeFilter(minCost, maxCost);
-      }
-      if (minInternet !== undefined) {
-        where.internetSpeed = { gte: minInternet };
-      }
-      if (minSafety !== undefined) {
-        where.safetyRating = { gte: minSafety };
-      }
-      if (minWalkability !== undefined) {
-        where.walkability = { gte: minWalkability };
-      }
-
-      // Build order by
-      const orderBy = createSortOrder(sortBy, sortOrder);
-
-      // Include reviews count and average rating
-      const include = {
-        reviews: {
-          select: {
-            rating: true,
-          },
-        },
-        _count: {
-          select: {
-            reviews: true,
-          },
-        },
-      };
-
-      const result = await paginate(
-        prisma.city,
-        { page, limit },
-        where,
-        orderBy,
-        include
-      );
-
-      // Calculate average ratings for each city
-      const citiesWithStats = (result.data as CityWithReviews[]).map(
-        (city: CityWithReviews) => {
-          const reviews = city.reviews || [];
-          const averageRating =
-            reviews.length > 0
-              ? reviews.reduce(
-                  (sum: number, review: { rating: number }) =>
-                    sum + review.rating,
-                  0
-                ) / reviews.length
-              : null;
-
-          return {
-            ...city,
-            averageRating: averageRating
-              ? Math.round(averageRating * 10) / 10
-              : null,
-            reviewCount: city._count.reviews,
-            reviews: undefined, // Remove reviews array from response
-            _count: undefined, // Remove count object from response
-          };
+        // Search filter
+        if (search) {
+          where.OR = [
+            { name: { contains: search, mode: "insensitive" } },
+            { country: { contains: search, mode: "insensitive" } },
+            { region: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+          ];
         }
-      );
 
-      return {
-        ...result,
-        data: citiesWithStats,
-      };
-    });
+        // Country filter
+        if (country) {
+          where.country = { equals: country, mode: "insensitive" };
+        }
+
+        // Boolean filters
+        if (featured !== undefined) {
+          where.featured = featured;
+        }
+        if (verified !== undefined) {
+          where.verified = verified;
+        }
+
+        // Range filters
+        if (minCost !== undefined || maxCost !== undefined) {
+          where.costOfLiving = createRangeFilter(minCost, maxCost);
+        }
+        if (minInternet !== undefined) {
+          where.internetSpeed = { gte: minInternet };
+        }
+        if (minSafety !== undefined) {
+          where.safetyRating = { gte: minSafety };
+        }
+        if (minWalkability !== undefined) {
+          where.walkability = { gte: minWalkability };
+        }
+
+        // Build order by
+        const orderBy = createSortOrder(sortBy, sortOrder);
+
+        // Include reviews count and average rating
+        const include = {
+          reviews: {
+            select: {
+              rating: true,
+            },
+          },
+          _count: {
+            select: {
+              reviews: true,
+            },
+          },
+        };
+
+        const result = await paginate(
+          prisma.city,
+          { page, limit },
+          where,
+          orderBy,
+          include
+        );
+
+        // Calculate average ratings for each city
+        const citiesWithStats = (result.data as CityWithReviews[]).map(
+          (city: CityWithReviews) => {
+            const reviews = city.reviews || [];
+            const averageRating =
+              reviews.length > 0
+                ? reviews.reduce(
+                    (sum: number, review: { rating: number }) =>
+                      sum + review.rating,
+                    0
+                  ) / reviews.length
+                : null;
+
+            return {
+              ...city,
+              averageRating: averageRating
+                ? Math.round(averageRating * 10) / 10
+                : null,
+              reviewCount: city._count.reviews,
+              reviews: undefined, // Remove reviews array from response
+              _count: undefined, // Remove count object from response
+            };
+          }
+        );
+
+        return {
+          ...result,
+          data: citiesWithStats,
+        };
+      }),
+      // Add timeout for serverless environments (10 seconds)
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Database query timeout")), 10000)
+      ),
+    ])) as Promise<any>;
   } catch (error) {
     console.warn("Database unavailable, using mock data:", error);
 

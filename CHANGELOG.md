@@ -14,6 +14,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Advanced testing framework improvements
 - Performance optimization initiatives
 
+## [v1.4.2] - 2025-01-24T23:45:00Z
+
+### Fixed
+
+- **GitHub Workflows Critical Issues Resolution**: Comprehensive fix for deployment and automation workflow failures
+  - **Branch Deployment Workflow**: Fixed Prisma client constructor validation error during build verification
+    - **Root Cause**: Missing `DATABASE_URL` environment variable in build-verification job causing "Invalid value undefined for datasource 'db'" error
+    - **Solution**: Added `DATABASE_URL` with fallback value to build step environment variables
+    - **Impact**: Build verification now completes successfully without Prisma client errors
+  - **Automated Promotion Workflow**: Fixed GitHub API permissions error preventing issue creation
+    - **Root Cause**: Missing `issues: write` permission causing 403 "Resource not accessible by integration" error
+    - **Solution**: Added `issues: write` to workflow permissions section
+    - **Impact**: Workflow can now create GitHub issues on promotion failures for proper incident tracking
+  - **Environment Validation Optimization**: Removed redundant validation processes
+    - **Removed**: `vercel-env-validation.js` file and associated validation steps
+    - **Updated**: Vercel build command from `"node vercel-env-validation.js && next build"` to `"next build"`
+    - **Streamlined**: GitHub workflow environment validation to be more efficient
+    - **Impact**: Faster builds, reduced redundancy, maintained reliability
+  - **Files Modified**:
+    - `.github/workflows/branch-deployment.yml`: Added DATABASE_URL to build verification
+    - `.github/workflows/automated-promotion.yml`: Added issues:write permission
+    - `vercel.json`: Simplified build command
+    - Deleted: `vercel-env-validation.js`
+
+### Changed
+
+- **Deployment Process**: Streamlined Vercel deployment with direct Next.js build process
+- **CI/CD Pipeline**: Enhanced workflow reliability with proper environment variable handling
+- **Error Handling**: Improved failure reporting through automated GitHub issue creation
+
 ## [v1.4.1] - 2025-01-24T23:30:00Z
 
 ### Fixed
