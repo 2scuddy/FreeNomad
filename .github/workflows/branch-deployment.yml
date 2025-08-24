@@ -15,8 +15,6 @@ on:
 
 env:
   NODE_VERSION: "20"
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
   # Quality checks for all branches
@@ -36,13 +34,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Environment validation
-        run: |
-          echo "NEXTAUTH_SECRET=test-secret-for-ci" > .env.test
-          echo "DATABASE_URL=postgresql://test:test@localhost:5432/test" >> .env.test
-          node vercel-env-validation.js || echo "Environment validation completed with warnings"
+      - name: Generate Prisma client
+        run: npx prisma generate
         env:
-          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
 
       - name: Run linting
         run: npm run lint
@@ -163,9 +158,9 @@ jobs:
             test-results/
             playwright-report/
 
-  # Vercel deployment for different environments
-  deploy-vercel:
-    name: Deploy to Vercel
+  # Build verification (Vercel handles automatic deployment)
+  build-verification:
+    name: Build Verification
     runs-on: ubuntu-latest
     needs: [quality-checks]
     if: github.event_name == 'push'
@@ -180,54 +175,42 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Determine environment
-        id: env-name
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "environment=production" >> $GITHUB_OUTPUT
-            echo "alias=--prod" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-            echo "environment=preview" >> $GITHUB_OUTPUT
-            echo "alias=--target=staging" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/development" ]]; then
-            echo "environment=preview" >> $GITHUB_OUTPUT
-            echo "alias=--target=development" >> $GITHUB_OUTPUT
-          else
-            echo "environment=preview" >> $GITHUB_OUTPUT
-            echo "alias=" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=${{ steps.env-name.outputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
-        continue-on-error: true
-
-      - name: Build Project Artifacts
-        run: vercel build ${{ steps.env-name.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'build-verification-secret' }}
+          NEXTAUTH_URL: https://freenomad.vercel.app
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://test:test@localhost:5432/test' }}
         timeout-minutes: 10
-        continue-on-error: false
 
-      - name: Deploy Project Artifacts to Vercel
-        id: deploy
+      - name: Verify build output
         run: |
-          url=$(vercel deploy --prebuilt ${{ steps.env-name.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }})
-          echo "deployment-url=$url" >> $GITHUB_OUTPUT
-          echo "Deployment URL: $url"
-        timeout-minutes: 15
-        continue-on-error: false
+          if [ ! -d ".next" ]; then
+            echo "❌ Build failed: .next directory not found"
+            exit 1
+          fi
+          echo "✅ Build successful: .next directory exists"
+          echo "📦 Build artifacts ready for Vercel automatic deployment"
 
-      - name: Comment deployment URL on PR
+      - name: Comment build status on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
+            const branch = '${{ github.head_ref }}';
+            const environment = '${{ github.ref }}' === 'refs/heads/main' ? 'production' : 'preview';
+            
+            const body = `✅ **Build Verification Passed**\n\n**Branch**: \`${branch}\`\n**Environment**: ${environment}\n**Status**: Ready for automatic Vercel deployment\n\n🚀 Vercel will automatically deploy this branch when merged.`;
+            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 **Deployment Preview**: ${{ steps.deploy.outputs.deployment-url }}\n\n**Branch**: \`${{ github.head_ref }}\`\n**Environment**: ${{ steps.env-name.outputs.environment }}`
+              body: body
             })
 
   # Security and dependency checks
@@ -270,7 +253,7 @@ jobs:
   lighthouse-checks:
     name: Lighthouse Performance
     runs-on: ubuntu-latest
-    needs: [deploy-vercel]
+    needs: [build-verification]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
 
     steps:
@@ -293,38 +276,46 @@ jobs:
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 
-  # Notification for successful deployments
-  notify-deployment:
-    name: Notify Deployment
+  # Notification for successful builds
+  notify-build:
+    name: Notify Build Status
     runs-on: ubuntu-latest
-    needs: [deploy-vercel, integration-tests, e2e-tests]
+    needs: [build-verification, integration-tests, e2e-tests]
     if: always() && github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
 
     steps:
-      - name: Determine deployment status
+      - name: Determine build status
         id: status
         run: |
-          if [[ "${{ needs.deploy-vercel.result }}" == "success" && "${{ needs.integration-tests.result }}" != "failure" && "${{ needs.e2e-tests.result }}" != "failure" ]]; then
+          if [[ "${{ needs.build-verification.result }}" == "success" && "${{ needs.integration-tests.result }}" != "failure" && "${{ needs.e2e-tests.result }}" != "failure" ]]; then
             echo "status=success" >> $GITHUB_OUTPUT
-            echo "message=✅ Deployment successful" >> $GITHUB_OUTPUT
+            echo "message=✅ Build verification and tests successful - Ready for automatic Vercel deployment" >> $GITHUB_OUTPUT
           else
             echo "status=failure" >> $GITHUB_OUTPUT
-            echo "message=❌ Deployment failed" >> $GITHUB_OUTPUT
+            echo "message=❌ Build verification or tests failed" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create deployment status
+      - name: Create build status comment
         uses: actions/github-script@v7
         with:
           script: |
             const { owner, repo } = context.repo;
             const sha = context.sha;
             const environment = '${{ github.ref }}' === 'refs/heads/main' ? 'production' : 'staging';
+            const status = '${{ steps.status.outputs.status }}';
+            const message = '${{ steps.status.outputs.message }}';
 
-            await github.rest.repos.createDeploymentStatus({
+            // Create a commit status
+            await github.rest.repos.createCommitStatus({
               owner,
               repo,
-              deployment_id: context.payload.deployment?.id || 0,
-              state: '${{ steps.status.outputs.status }}',
-              description: '${{ steps.status.outputs.message }}',
-              environment_url: '${{ needs.deploy-vercel.outputs.deployment-url }}'
+              sha,
+              state: status === 'success' ? 'success' : 'failure',
+              description: message,
+              context: 'ci/build-verification'
             });
+
+            console.log(`Build status: ${status}`);
+            console.log(`Message: ${message}`);
+            console.log(`Environment: ${environment}`);
+            console.log('Vercel will handle automatic deployment for successful builds.');

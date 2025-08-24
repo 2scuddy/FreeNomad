@@ -48,6 +48,7 @@ permissions:
   actions: read
   checks: write
   statuses: write
+  issues: write
 
 jobs:
   # Determine promotion strategy
