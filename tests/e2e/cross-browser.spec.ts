@@ -1,8 +1,6 @@
-import { test, expect, devices } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 test.describe("Cross-Browser Compatibility", () => {
-  const browsers = ["chromium", "firefox", "webkit"];
-
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
   });

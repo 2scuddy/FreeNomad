@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Users,
   MessageSquare,
@@ -312,9 +313,11 @@ export default function CommunityPage() {
                 {featuredMembers.map(member => (
                   <div key={member.id} className="flex items-center gap-3">
                     <div className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full bg-muted">
-                      <img
+                      <Image
                         src={member.avatar}
                         alt={member.name}
+                        width={40}
+                        height={40}
                         className="aspect-square h-full w-full object-cover"
                       />
                     </div>

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Comprehensive Test Suite Runner", () => {
   test.describe("Test Suite Validation", () => {
-    test("should validate all test files are accessible", async ({ page }) => {
+    test("should validate all test files are accessible", async () => {
       // This test ensures all our test suites are properly configured
       const testSuites = [
         "Links Validation",
@@ -156,8 +156,8 @@ test.describe("Comprehensive Test Suite Runner", () => {
 
       // Measure Web Vitals
       const webVitals = await page.evaluate(() => {
-        return new Promise<any>(resolve => {
-          const vitals: any = {};
+        return new Promise<Record<string, number>>(resolve => {
+          const vitals: Record<string, number> = {};
 
           // Measure FCP
           new PerformanceObserver(list => {

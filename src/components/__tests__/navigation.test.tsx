@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Navigation } from "../navigation";
 
 // Mock next-auth
@@ -8,8 +8,9 @@ jest.mock("next-auth/react", () => ({
   signOut: jest.fn(),
 }));
 
+const mockSignOut = jest.fn();
+
 const mockUseSession = useSession as jest.Mock;
-const mockSignOut = signOut as jest.Mock;
 
 // Mock next/link
 jest.mock("next/link", () => {
@@ -102,21 +103,7 @@ describe("Navigation Component", () => {
   });
 
   it("handles sign out click", () => {
-    const mockSignOut = jest.fn();
-    jest.doMock("next-auth/react", () => ({
-      useSession: () => ({
-        data: {
-          user: {
-            id: "1",
-            name: "John Doe",
-            email: "john@example.com",
-          },
-          expires: "2024-12-31",
-        },
-        status: "authenticated",
-      }),
-      signOut: mockSignOut,
-    }));
+    mockSignOut.mockClear();
 
     mockUseSession.mockReturnValue({
       data: {

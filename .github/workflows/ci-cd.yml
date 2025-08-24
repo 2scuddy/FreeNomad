@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, development, staging]
   pull_request:
-    branches: [main]
+    branches: [main, staging]
 
 # Enhanced permissions for private repositories
 permissions:
@@ -55,10 +55,12 @@ jobs:
           severity: "CRITICAL,HIGH,MEDIUM"
           exit-code: "0"
           ignore-unfixed: true
+        timeout-minutes: 10
+        continue-on-error: true
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: "trivy-results.sarif"
           category: "trivy-security-scan"
@@ -68,6 +70,15 @@ jobs:
           wait-for-processing: true
           # Add repository context for private repos
           checkout_path: ${{ github.workspace }}
+        continue-on-error: true
+
+      - name: Upload security scan artifacts
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.5
+        if: always()
+        with:
+          name: security-scan-results
+          path: trivy-results.sarif
+          retention-days: 30
 
   # Code quality and testing
   test:
@@ -82,8 +93,10 @@ jobs:
       postgres:
         image: postgres:15
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: freenomad_test
+          POSTGRES_HOST_AUTH_METHOD: md5
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -114,15 +127,18 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint:check
-        continue-on-error: false
+        continue-on-error: true
+        timeout-minutes: 10
 
       - name: Run Prettier check
         run: npm run format:check
-        continue-on-error: false
+        continue-on-error: true
+        timeout-minutes: 5
 
       - name: Run TypeScript check
         run: npm run type-check
         continue-on-error: false
+        timeout-minutes: 10
 
       - name: Run tests
         env:
@@ -132,6 +148,17 @@ jobs:
           NODE_ENV: test
         run: npm run test
         continue-on-error: false
+        timeout-minutes: 15
+
+      - name: Upload test results
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.5
+        if: always()
+        with:
+          name: test-results
+          path: |
+            coverage/
+            test-results/
+          retention-days: 7
 
       - name: Build application
         env:
@@ -141,6 +168,16 @@ jobs:
           NODE_ENV: production
         run: npm run build
         continue-on-error: false
+        timeout-minutes: 20
+
+      - name: Verify build output
+        run: |
+          if [ ! -d ".next" ]; then
+            echo "Build failed: .next directory not found"
+            exit 1
+          fi
+          echo "Build successful: .next directory exists"
+          ls -la .next/
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.5

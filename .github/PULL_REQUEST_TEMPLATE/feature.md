@@ -52,8 +52,7 @@ Related to #<!-- issue number -->
 
 ### Test Instructions
 
-1. **Setup:**
-   -
+1. ## **Setup:**
    -
 
 2. **Test Scenario 1:**

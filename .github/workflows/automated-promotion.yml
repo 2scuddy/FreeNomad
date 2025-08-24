@@ -5,41 +5,49 @@ on:
   workflow_dispatch:
     inputs:
       promotion_type:
-        description: 'Type of promotion'
+        description: "Type of promotion"
         required: true
-        default: 'develop-to-staging'
+        default: "development-to-staging"
         type: choice
         options:
-          - develop-to-staging
+          - development-to-staging
           - staging-to-main
           - hotfix-promotion
       skip_tests:
-        description: 'Skip tests (emergency only)'
+        description: "Skip tests (emergency only)"
         required: false
         default: false
         type: boolean
       release_version:
-        description: 'Release version (for staging-to-main)'
+        description: "Release version (for staging-to-main)"
         required: false
         type: string
 
   # Scheduled promotions
   schedule:
     # Weekly promotion from develop to staging (Fridays at 2 PM UTC)
-    - cron: '0 14 * * 5'
+    - cron: "0 14 * * 5"
 
   # Auto-promotion after successful merges
   push:
     branches:
-      - develop
+      - development
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/**'
+      - "**.md"
+      - "docs/**"
+      - ".github/**"
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: "20"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+# Enhanced permissions for branch operations
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  checks: write
+  statuses: write
 
 jobs:
   # Determine promotion strategy
@@ -52,7 +60,7 @@ jobs:
       target_branch: ${{ steps.strategy.outputs.target_branch }}
       skip_tests: ${{ steps.strategy.outputs.skip_tests }}
       release_version: ${{ steps.strategy.outputs.release_version }}
-    
+
     steps:
       - name: Determine promotion strategy
         id: strategy
@@ -62,17 +70,17 @@ jobs:
             echo "skip_tests=${{ github.event.inputs.skip_tests }}" >> $GITHUB_OUTPUT
             echo "release_version=${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event_name }}" == "schedule" ]]; then
-            echo "promotion_type=develop-to-staging" >> $GITHUB_OUTPUT
+            echo "promotion_type=development-to-staging" >> $GITHUB_OUTPUT
             echo "skip_tests=false" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/develop" ]]; then
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/development" ]]; then
             # Auto-promotion after 24 hours of stability
-            echo "promotion_type=auto-develop-to-staging" >> $GITHUB_OUTPUT
+            echo "promotion_type=auto-development-to-staging" >> $GITHUB_OUTPUT
             echo "skip_tests=false" >> $GITHUB_OUTPUT
           fi
-          
+
           case "${{ steps.strategy.outputs.promotion_type || github.event.inputs.promotion_type }}" in
-            "develop-to-staging"|"auto-develop-to-staging")
-              echo "source_branch=develop" >> $GITHUB_OUTPUT
+            "development-to-staging"|"auto-development-to-staging")
+              echo "source_branch=development" >> $GITHUB_OUTPUT
               echo "target_branch=staging" >> $GITHUB_OUTPUT
               ;;
             "staging-to-main")
@@ -81,7 +89,7 @@ jobs:
               ;;
             "hotfix-promotion")
               echo "source_branch=main" >> $GITHUB_OUTPUT
-              echo "target_branch=develop,staging" >> $GITHUB_OUTPUT
+              echo "target_branch=development,staging" >> $GITHUB_OUTPUT
               ;;
           esac
 
@@ -91,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: determine-promotion
     if: needs.determine-promotion.outputs.skip_tests != 'true'
-    
+
     steps:
       - name: Checkout source branch
         uses: actions/checkout@v4
@@ -103,7 +111,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -137,18 +145,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: [determine-promotion, pre-promotion-checks]
     if: always() && (needs.pre-promotion-checks.result == 'success' || needs.determine-promotion.outputs.skip_tests == 'true')
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          persist-credentials: true
 
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: Execute promotion
         id: promotion
@@ -157,26 +167,26 @@ jobs:
           TARGET_BRANCH="${{ needs.determine-promotion.outputs.target_branch }}"
           PROMOTION_TYPE="${{ needs.determine-promotion.outputs.promotion_type }}"
           RELEASE_VERSION="${{ needs.determine-promotion.outputs.release_version }}"
-          
+
           echo "Executing promotion: $SOURCE_BRANCH → $TARGET_BRANCH"
-          
+
           # Fetch latest changes
           git fetch origin
-          
+
           case "$PROMOTION_TYPE" in
-            "develop-to-staging"|"auto-develop-to-staging")
-              # Promote develop to staging
+            "development-to-staging"|"auto-development-to-staging")
+              # Promote development to staging
               git checkout staging
               git pull origin staging
               
               # Check if there are new changes to promote
-              if git merge-base --is-ancestor origin/develop staging; then
-                echo "No new changes to promote from develop to staging"
+              if git merge-base --is-ancestor origin/development staging; then
+                echo "No new changes to promote from development to staging"
                 echo "promotion_needed=false" >> $GITHUB_OUTPUT
                 exit 0
               fi
               
-              git merge origin/develop --no-ff -m "chore: promote develop to staging"
+              git merge origin/development --no-ff -m "chore: promote development to staging"
               git push origin staging
               echo "promotion_needed=true" >> $GITHUB_OUTPUT
               echo "promoted_to=staging" >> $GITHUB_OUTPUT
@@ -208,23 +218,23 @@ jobs:
               echo "promotion_needed=true" >> $GITHUB_OUTPUT
               echo "promoted_to=main" >> $GITHUB_OUTPUT
               
-              # Back-merge to develop to keep branches in sync
-              git checkout develop
-              git pull origin develop
-              git merge origin/main --no-ff -m "chore: back-merge main to develop"
-              git push origin develop
+              # Back-merge to development to keep branches in sync
+              git checkout development
+              git pull origin development
+              git merge origin/main --no-ff -m "chore: back-merge main to development"
+              git push origin development
               ;;
               
             "hotfix-promotion")
-              # Promote hotfix to develop and staging
-              for branch in develop staging; do
+              # Promote hotfix to development and staging
+              for branch in development staging; do
                 git checkout $branch
                 git pull origin $branch
                 git merge origin/main --no-ff -m "chore: back-merge hotfix from main to $branch"
                 git push origin $branch
               done
               echo "promotion_needed=true" >> $GITHUB_OUTPUT
-              echo "promoted_to=develop,staging" >> $GITHUB_OUTPUT
+              echo "promoted_to=development,staging" >> $GITHUB_OUTPUT
               ;;
           esac
 
@@ -236,11 +246,11 @@ jobs:
           echo "**Type**: ${{ needs.determine-promotion.outputs.promotion_type }}" >> $GITHUB_STEP_SUMMARY
           echo "**Source**: ${{ needs.determine-promotion.outputs.source_branch }}" >> $GITHUB_STEP_SUMMARY
           echo "**Target**: ${{ steps.promotion.outputs.promoted_to }}" >> $GITHUB_STEP_SUMMARY
-          
+
           if [[ -n "${{ steps.promotion.outputs.release_tag }}" ]]; then
             echo "**Release Tag**: ${{ steps.promotion.outputs.release_tag }}" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
 
@@ -250,7 +260,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [determine-promotion, execute-promotion]
     if: needs.execute-promotion.outputs.promotion_needed == 'true'
-    
+
     steps:
       - name: Checkout target branch
         uses: actions/checkout@v4
@@ -261,7 +271,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -285,7 +295,7 @@ jobs:
           # Wait for Vercel deployment and verify
           echo "Waiting for deployment to complete..."
           sleep 30
-          
+
           # Add deployment verification logic
           echo "Deployment verification completed"
 
@@ -295,7 +305,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [determine-promotion, execute-promotion, post-promotion-verification]
     if: always()
-    
+
     steps:
       - name: Determine notification message
         id: message
@@ -320,7 +330,7 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
-            
+
             await github.rest.issues.create({
               owner,
               repo,
@@ -336,7 +346,7 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const sha = context.sha;
-            
+
             await github.rest.repos.createDeploymentStatus({
               owner,
               repo,
@@ -352,7 +362,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [execute-promotion]
     if: needs.execute-promotion.outputs.promotion_needed == 'true' && github.event_name == 'schedule'
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -367,7 +377,7 @@ jobs:
           while read branch date; do
             if [[ $(date -d "$date" +%s) -lt $(date -d "30 days ago" +%s) ]]; then
               # Check if branch is merged
-              if git merge-base --is-ancestor origin/$branch origin/develop; then
+              if git merge-base --is-ancestor origin/$branch origin/development; then
                 echo "Deleting merged feature branch: $branch"
                 git push origin --delete ${branch#origin/}
               fi

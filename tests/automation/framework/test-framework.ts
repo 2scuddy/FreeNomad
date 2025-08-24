@@ -6,7 +6,6 @@ import {
   firefox,
   webkit,
 } from "@playwright/test";
-import axios from "axios";
 import {
   BrowserConfig,
   TestExecutionConfig,
@@ -23,9 +22,6 @@ import {
 } from "../visual/visual-regression";
 import { ErrorHandler } from "../utils/error-handler";
 import { WaitStrategies } from "../utils/wait-strategies";
-
-// Use unknown for axios types to avoid compatibility issues
-type AxiosInstance = unknown;
 
 export interface TestCase {
   id: string;
@@ -74,7 +70,6 @@ export class TestFramework {
   private browsers: Map<string, Browser> = new Map();
   private contexts: Map<string, BrowserContext> = new Map();
   private pages: Map<string, Page> = new Map();
-  private axiosInstance: AxiosInstance;
   private reporter: TestReporter;
   private performanceMonitor: PerformanceMonitor;
   private visualTester: VisualRegressionTester;
@@ -85,46 +80,11 @@ export class TestFramework {
     private config: TestExecutionConfig,
     private performanceThresholds: PerformanceThresholds
   ) {
-    this.axiosInstance = axios.create({
-      timeout: 10000,
-      validateStatus: () => true, // Don't throw on HTTP errors
-    }) as AxiosInstance;
-
     this.reporter = new TestReporter();
     this.performanceMonitor = new PerformanceMonitor(performanceThresholds);
     this.visualTester = new VisualRegressionTester();
     this.errorHandler = new ErrorHandler(config.retryAttempts);
     this.waitStrategies = new WaitStrategies();
-
-    this.setupAxiosInterceptors();
-  }
-
-  private setupAxiosInterceptors(): void {
-    // Request interceptor
-    (this.axiosInstance as any).interceptors.request.use(
-      (config: any) => {
-        console.log(
-          `API Request: ${config.method?.toUpperCase()} ${config.url}`
-        );
-        return config;
-      },
-      (error: any) => {
-        console.error("API Request Error:", error);
-        return Promise.reject(error);
-      }
-    );
-
-    // Response interceptor
-    (this.axiosInstance as any).interceptors.response.use(
-      (response: any) => {
-        console.log(`API Response: ${response.status} ${response.config.url}`);
-        return response;
-      },
-      (error: any) => {
-        console.error("API Response Error:", error);
-        return Promise.reject(error);
-      }
-    );
   }
 
   async initializeBrowser(browserConfig: BrowserConfig): Promise<string> {
@@ -365,10 +325,6 @@ export class TestFramework {
         await this.takeScreenshot(page, `${step.action}-${Date.now()}`);
         break;
 
-      case "api_call":
-        await this.executeApiCall(step.target!, step.value);
-        break;
-
       default:
         throw new Error(`Unknown test step action: ${step.action}`);
     }
@@ -376,18 +332,6 @@ export class TestFramework {
     if (step.screenshot) {
       await this.takeScreenshot(page, `step-${step.action}-${Date.now()}`);
     }
-  }
-
-  private async executeApiCall(
-    url: string,
-    method: string = "GET"
-  ): Promise<unknown> {
-    const config: { method: string; url: string } = {
-      method: method.toLowerCase(),
-      url,
-    };
-
-    return await (this.axiosInstance as any).request(config);
   }
 
   private async takeScreenshot(page: Page, name: string): Promise<string> {

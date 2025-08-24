@@ -121,10 +121,6 @@ test.describe("Core Application Workflows", () => {
         await page.waitForTimeout(1000);
       }
 
-      // Check if URL or content updated
-      const url = page.url();
-      const hasFilters = url.includes("maxCost") || url.includes("filter");
-
       // At minimum, the filter interaction should not cause errors
       await expect(page.locator("body")).toBeVisible();
     });
