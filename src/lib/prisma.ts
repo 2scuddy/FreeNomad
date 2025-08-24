@@ -1,40 +1,20 @@
 import { PrismaClient } from "../generated/prisma";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import ws from "ws";
-
-// Configure Neon for serverless environments
-if (typeof window === "undefined") {
-  neonConfig.webSocketConstructor = ws;
-}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 function createPrismaClient() {
-  // Use Neon serverless adapter for better Vercel compatibility
-  const connectionString = process.env.DATABASE_URL;
-
-  if (!connectionString) {
-    throw new Error("DATABASE_URL environment variable is not set");
-  }
-
-  // Create Neon adapter with optimized settings for serverless
-  const adapter = new PrismaNeon({
-    connectionString,
-    // Optimize for serverless: fewer connections, faster timeouts
-    max: 1, // Single connection for serverless functions
-    idleTimeoutMillis: 1000, // Close idle connections quickly
-    connectionTimeoutMillis: 5000, // 5 second connection timeout
-  });
-
   return new PrismaClient({
-    adapter,
     log:
       process.env.NODE_ENV === "development"
         ? ["query", "info", "warn", "error"]
         : ["error"],
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
   });
 }
 

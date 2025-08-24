@@ -1,5 +1,5 @@
 {
-  "buildCommand": "next build",
+  "buildCommand": "prisma generate && next build",
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
@@ -10,11 +10,11 @@
   },
   "regions": ["iad1"],
   "env": {
-    "PRISMA_GENERATE_DATAPROXY": "true"
+    "NODE_ENV": "production"
   },
   "build": {
     "env": {
-      "PRISMA_GENERATE_DATAPROXY": "true"
+      "NODE_ENV": "production"
     }
   },
   "headers": [
