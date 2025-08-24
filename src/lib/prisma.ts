@@ -20,16 +20,14 @@ function createPrismaClient() {
     throw new Error("DATABASE_URL environment variable is not set");
   }
 
-  // Create connection pool with optimized settings for serverless
-  const pool = new Pool({
+  // Create Neon adapter with optimized settings for serverless
+  const adapter = new PrismaNeon({
     connectionString,
     // Optimize for serverless: fewer connections, faster timeouts
     max: 1, // Single connection for serverless functions
     idleTimeoutMillis: 1000, // Close idle connections quickly
     connectionTimeoutMillis: 5000, // 5 second connection timeout
   });
-
-  const adapter = new PrismaNeon(pool);
 
   return new PrismaClient({
     adapter,
