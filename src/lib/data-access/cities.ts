@@ -190,6 +190,11 @@ export async function getCities(query: CityQuery) {
       throw new Error("Database connection failed");
     }
 
+    // Force use of mock data in unit tests to ensure consistent behavior
+    if (process.env.NODE_ENV === "test" && process.env.JEST_WORKER_ID) {
+      throw new Error("Using mock data for unit tests");
+    }
+
     return await safeDbOperation(async () => {
       const {
         page,

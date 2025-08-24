@@ -19,6 +19,8 @@ const mockPrisma = {
     count: jest.fn() as any,
     findUnique: jest.fn() as any,
   },
+  $connect: jest.fn() as any,
+  $disconnect: jest.fn() as any,
 };
 
 // Create mock city data that will be used consistently across tests
@@ -80,29 +82,47 @@ jest.mock("../../src/lib/prisma", () => ({
   prisma: mockPrisma,
 }));
 
+// Mock the Prisma client to prevent any real database connections
+jest.mock("@prisma/client", () => ({
+  PrismaClient: jest.fn().mockImplementation(() => mockPrisma),
+}));
+
 // Mock db-utils to use mocked prisma
 jest.mock("../../src/lib/db-utils", () => {
   const originalModule = jest.requireActual("../../src/lib/db-utils") as any;
   return {
     ...originalModule,
     safeDbOperation: jest.fn().mockImplementation(async (operation: any) => {
-      try {
-        return await operation();
-      } catch (error) {
-        // Re-throw the error to trigger the catch block in getCities
-        throw error;
+      // In unit tests, we want to control the behavior explicitly
+      // Check if we're in a test that should simulate database errors
+      const testName = expect.getState().currentTestName;
+      if (testName && testName.includes("database errors gracefully")) {
+        // For the database error test, throw an error to trigger fallback
+        throw new Error("Simulated database error for testing");
       }
+
+      // For normal tests, always use the mocked operation result
+      // This ensures consistent behavior regardless of database state
+      return await operation();
     }),
     paginate: jest
       .fn()
       .mockImplementation(
         async (model: any, options: any, where?: any, orderBy?: any) => {
-          // Use the consistent mockCityData instead of redefining it
+          // Always use mock data in tests to ensure consistent behavior
+          // regardless of database connection status
           let filteredData = [...mockCityData];
 
+          // Apply filtering logic
           if (where?.costOfLiving?.lte) {
             filteredData = filteredData.filter(
               city => city.costOfLiving <= where.costOfLiving.lte
+            );
+          }
+
+          if (where?.safetyRating?.gte) {
+            filteredData = filteredData.filter(
+              city => city.safetyRating >= where.safetyRating.gte
             );
           }
 
@@ -120,20 +140,19 @@ jest.mock("../../src/lib/db-utils", () => {
           }
 
           // Apply pagination
-          const skip = options.page ? (options.page - 1) * options.limit : 0;
-          const take = options.limit || 10;
-          const paginatedData = filteredData.slice(skip, skip + take);
+          const page = options.page || 1;
+          const limit = options.limit || 10;
+          const skip = (page - 1) * limit;
+          const paginatedData = filteredData.slice(skip, skip + limit);
 
           return {
             data: paginatedData,
             meta: {
               total: filteredData.length,
-              page: options.page || 1,
-              limit: options.limit || 10,
-              totalPages: Math.ceil(
-                filteredData.length / (options.limit || 10)
-              ),
-              hasMore: skip + take < filteredData.length,
+              page: page,
+              limit: limit,
+              totalPages: Math.ceil(filteredData.length / limit),
+              hasMore: skip + limit < filteredData.length,
             },
           };
         }
