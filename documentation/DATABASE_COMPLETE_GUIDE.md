@@ -98,12 +98,14 @@ SYNC_REFERENCE_DATA="true"
 ### Database Projects
 
 #### Development Database
+
 - **Project**: `freenomds-dev` (ancient-flower-53144348)
 - **Branch**: `br-calm-mud-ad9kht59`
 - **Endpoint**: `ep-purple-moon-adoz7i17`
 - **Purpose**: Isolated development and testing
 
 #### Production Database
+
 - **Project**: `weathered-haze-60662026`
 - **Branch**: Main branch
 - **Purpose**: Live application data
@@ -156,6 +158,7 @@ The database includes full NextAuth.js support with:
 ### Database Authentication Fixes
 
 Refer to the authentication-specific documentation for:
+
 - OAuth provider setup
 - Session configuration
 - Security best practices
@@ -169,6 +172,7 @@ Refer to the authentication-specific documentation for:
 **Problem**: `Connection refused` or `timeout` errors
 
 **Solution**:
+
 ```bash
 # Check environment variables
 echo $DATABASE_URL
@@ -185,6 +189,7 @@ npm run db:test:dev
 **Problem**: Prisma client errors or type mismatches
 
 **Solution**:
+
 ```bash
 # Regenerate Prisma client
 npx prisma generate
@@ -201,6 +206,7 @@ npx prisma db push
 **Problem**: Sync script fails with errors
 
 **Solution**:
+
 ```bash
 # Run dry run to identify issues
 npm run db:sync:dry-run
@@ -217,6 +223,7 @@ npx tsx scripts/sync-dev-database.ts --force
 **Problem**: Slow database queries or timeouts
 
 **Solution**:
+
 ```bash
 # Check connection performance
 npm run db:test:dev
@@ -229,28 +236,31 @@ npm run db:test:dev
 
 ### Error Codes
 
-| Error Code | Description | Solution |
-|------------|-------------|----------|
-| `P1001` | Connection refused | Check DATABASE_URL and network |
-| `P1008` | Timeout | Verify Neon project status |
-| `P2002` | Unique constraint | Check for duplicate data |
-| `P2025` | Record not found | Verify data synchronization |
+| Error Code | Description        | Solution                       |
+| ---------- | ------------------ | ------------------------------ |
+| `P1001`    | Connection refused | Check DATABASE_URL and network |
+| `P1008`    | Timeout            | Verify Neon project status     |
+| `P2002`    | Unique constraint  | Check for duplicate data       |
+| `P2025`    | Record not found   | Verify data synchronization    |
 
 ## Security Best Practices
 
 ### Environment Variables
+
 - Never commit `.env.development.local` to version control
 - Use different credentials for development and production
 - Regularly rotate database passwords
 - Limit database access to necessary IP addresses
 
 ### Data Protection
+
 - Development database should not contain real user data
 - Clear sensitive information during synchronization
 - Use anonymized data for testing when possible
 - Regular backup verification
 
 ### Access Control
+
 - Limit development database access to team members
 - Use role-based access in Neon console
 - Monitor database access logs
@@ -259,17 +269,20 @@ npm run db:test:dev
 ## Performance Optimization
 
 ### Connection Pooling
+
 - Development uses connection pooling by default
 - Pool size automatically managed by Neon
 - Monitor connection usage in Neon console
 
 ### Query Optimization
+
 - Use Prisma query optimization features
 - Monitor slow queries in development
 - Test with production-like data volumes
 - Implement proper indexing strategies
 
 ### Caching Strategy
+
 - Application-level caching for static data
 - Database query result caching
 - CDN caching for images and assets
@@ -301,6 +314,7 @@ vercel --prod
 For Vercel preview deployments with Neon database:
 
 1. **Environment Variables Setup**
+
    ```bash
    # All Neon variables are automatically configured for:
    # - Production: Main database
@@ -314,6 +328,7 @@ For Vercel preview deployments with Neon database:
    - Connection pooling is automatically handled by Neon
 
 3. **Deployment Commands**
+
    ```bash
    # Deploy to preview branch
    vercel --target preview

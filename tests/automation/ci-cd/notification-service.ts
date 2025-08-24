@@ -1,6 +1,5 @@
 import { NotificationConfig } from "../config/browser-config";
 import { PipelineResult } from "./pipeline-integration";
-import axios from "axios";
 import * as nodemailer from "nodemailer";
 
 export interface StartNotificationData {
@@ -227,7 +226,13 @@ export class NotificationService {
           : undefined,
       };
 
-      await axios.post(this.config.slack.webhookUrl, payload);
+      await fetch(this.config.slack.webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
       console.log("Slack notification sent successfully");
     } catch (error) {
       console.error("Failed to send Slack notification:", error);
@@ -242,19 +247,25 @@ export class NotificationService {
     }
 
     try {
-      await axios.post(
-        this.config.webhook.url,
-        {
-          source: "test-automation",
-          ...data,
-        },
-        {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        await fetch(this.config.webhook.url, {
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...this.config.webhook.headers,
+            ...(this.config.webhook.headers || {}),
           },
-        }
-      );
+          body: JSON.stringify({
+            source: "test-automation",
+            ...data,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
       console.log("Webhook notification sent successfully");
     } catch (error) {
       console.error("Failed to send webhook notification:", error);

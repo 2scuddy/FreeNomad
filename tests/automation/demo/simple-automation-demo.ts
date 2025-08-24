@@ -1,5 +1,4 @@
 import { chromium, Browser, Page } from "@playwright/test";
-import axios from "axios";
 
 /**
  * Simple Browser Test Automation Demo
@@ -158,10 +157,23 @@ class SimpleBrowserAutomation {
 
       // Test API endpoint
       console.log("📡 Testing API endpoints...");
-      const response = await axios.get("http://localhost:3000/api/cities", {
-        timeout: 5000,
-        validateStatus: () => true, // Don't throw on HTTP errors
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      let response;
+      try {
+        response = await fetch("http://localhost:3000/api/cities", {
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (!response.ok && response.status >= 500) {
+        throw new Error(
+          `API request failed: ${response.status} ${response.statusText}`
+        );
+      }
 
       console.log(`API Response: ${response.status} ${response.statusText}`);
 

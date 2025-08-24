@@ -7,10 +7,10 @@ on:
       promotion_type:
         description: "Type of promotion"
         required: true
-        default: "develop-to-staging"
+        default: "development-to-staging"
         type: choice
         options:
-          - develop-to-staging
+          - development-to-staging
           - staging-to-main
           - hotfix-promotion
       skip_tests:
@@ -31,7 +31,7 @@ on:
   # Auto-promotion after successful merges
   push:
     branches:
-      - develop
+      - development
     paths-ignore:
       - "**.md"
       - "docs/**"
@@ -48,6 +48,7 @@ permissions:
   actions: read
   checks: write
   statuses: write
+  issues: write
 
 jobs:
   # Determine promotion strategy
@@ -70,17 +71,17 @@ jobs:
             echo "skip_tests=${{ github.event.inputs.skip_tests }}" >> $GITHUB_OUTPUT
             echo "release_version=${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event_name }}" == "schedule" ]]; then
-            echo "promotion_type=develop-to-staging" >> $GITHUB_OUTPUT
+            echo "promotion_type=development-to-staging" >> $GITHUB_OUTPUT
             echo "skip_tests=false" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/develop" ]]; then
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/development" ]]; then
             # Auto-promotion after 24 hours of stability
-            echo "promotion_type=auto-develop-to-staging" >> $GITHUB_OUTPUT
+            echo "promotion_type=auto-development-to-staging" >> $GITHUB_OUTPUT
             echo "skip_tests=false" >> $GITHUB_OUTPUT
           fi
 
           case "${{ steps.strategy.outputs.promotion_type || github.event.inputs.promotion_type }}" in
-            "develop-to-staging"|"auto-develop-to-staging")
-              echo "source_branch=develop" >> $GITHUB_OUTPUT
+            "development-to-staging"|"auto-development-to-staging")
+              echo "source_branch=development" >> $GITHUB_OUTPUT
               echo "target_branch=staging" >> $GITHUB_OUTPUT
               ;;
             "staging-to-main")
@@ -89,7 +90,7 @@ jobs:
               ;;
             "hotfix-promotion")
               echo "source_branch=main" >> $GITHUB_OUTPUT
-              echo "target_branch=develop,staging" >> $GITHUB_OUTPUT
+              echo "target_branch=development,staging" >> $GITHUB_OUTPUT
               ;;
           esac
 
@@ -174,19 +175,19 @@ jobs:
           git fetch origin
 
           case "$PROMOTION_TYPE" in
-            "develop-to-staging"|"auto-develop-to-staging")
-              # Promote develop to staging
+            "development-to-staging"|"auto-development-to-staging")
+              # Promote development to staging
               git checkout staging
               git pull origin staging
               
               # Check if there are new changes to promote
-              if git merge-base --is-ancestor origin/develop staging; then
-                echo "No new changes to promote from develop to staging"
+              if git merge-base --is-ancestor origin/development staging; then
+                echo "No new changes to promote from development to staging"
                 echo "promotion_needed=false" >> $GITHUB_OUTPUT
                 exit 0
               fi
               
-              git merge origin/develop --no-ff -m "chore: promote develop to staging"
+              git merge origin/development --no-ff -m "chore: promote development to staging"
               git push origin staging
               echo "promotion_needed=true" >> $GITHUB_OUTPUT
               echo "promoted_to=staging" >> $GITHUB_OUTPUT
@@ -218,23 +219,23 @@ jobs:
               echo "promotion_needed=true" >> $GITHUB_OUTPUT
               echo "promoted_to=main" >> $GITHUB_OUTPUT
               
-              # Back-merge to develop to keep branches in sync
-              git checkout develop
-              git pull origin develop
-              git merge origin/main --no-ff -m "chore: back-merge main to develop"
-              git push origin develop
+              # Back-merge to development to keep branches in sync
+              git checkout development
+              git pull origin development
+              git merge origin/main --no-ff -m "chore: back-merge main to development"
+              git push origin development
               ;;
               
             "hotfix-promotion")
-              # Promote hotfix to develop and staging
-              for branch in develop staging; do
+              # Promote hotfix to development and staging
+              for branch in development staging; do
                 git checkout $branch
                 git pull origin $branch
                 git merge origin/main --no-ff -m "chore: back-merge hotfix from main to $branch"
                 git push origin $branch
               done
               echo "promotion_needed=true" >> $GITHUB_OUTPUT
-              echo "promoted_to=develop,staging" >> $GITHUB_OUTPUT
+              echo "promoted_to=development,staging" >> $GITHUB_OUTPUT
               ;;
           esac
 
@@ -377,7 +378,7 @@ jobs:
           while read branch date; do
             if [[ $(date -d "$date" +%s) -lt $(date -d "30 days ago" +%s) ]]; then
               # Check if branch is merged
-              if git merge-base --is-ancestor origin/$branch origin/develop; then
+              if git merge-base --is-ancestor origin/$branch origin/development; then
                 echo "Deleting merged feature branch: $branch"
                 git push origin --delete ${branch#origin/}
               fi
