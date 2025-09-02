@@ -3,16 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  MapPin,
-  Mail,
-  Phone,
-  Github,
-  Twitter,
-  Linkedin,
-  Instagram,
-  Heart,
-} from "lucide-react";
+import { MapPin, Github, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FooterProps {
@@ -31,12 +22,9 @@ export function Footer({ className }: FooterProps) {
     ],
     company: [
       { href: "/about", label: "About Us" },
-      { href: "/careers", label: "Careers" },
       { href: "/blog", label: "Blog" },
-      { href: "/press", label: "Press" },
     ],
     support: [
-      { href: "/help", label: "Help Center" },
       { href: "/contact", label: "Contact Us" },
       { href: "/faq", label: "FAQ" },
       { href: "/community", label: "Community" },
@@ -45,23 +33,11 @@ export function Footer({ className }: FooterProps) {
       { href: "/privacy", label: "Privacy Policy" },
       { href: "/terms", label: "Terms of Service" },
       { href: "/cookies", label: "Cookie Policy" },
-      { href: "/disclaimer", label: "Disclaimer" },
     ],
   };
 
   const socialLinks = [
     { href: "https://github.com/freenomad", icon: Github, label: "GitHub" },
-    { href: "https://twitter.com/freenomad", icon: Twitter, label: "Twitter" },
-    {
-      href: "https://linkedin.com/company/freenomad",
-      icon: Linkedin,
-      label: "LinkedIn",
-    },
-    {
-      href: "https://instagram.com/freenomad",
-      icon: Instagram,
-      label: "Instagram",
-    },
   ];
 
   return (
@@ -69,7 +45,7 @@ export function Footer({ className }: FooterProps) {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-8">
-          {/* Brand and Contact Section */}
+          {/* Brand and Social Section */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-8 mb-6 lg:mb-0">
               <Link
@@ -81,28 +57,6 @@ export function Footer({ className }: FooterProps) {
                   FreeNomad
                 </span>
               </Link>
-
-              {/* Contact Information */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-2 sm:space-y-0">
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  <a
-                    href="mailto:hello@freenomad.com"
-                    className="hover:text-foreground transition-colors"
-                  >
-                    hello@freenomad.com
-                  </a>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  <a
-                    href="tel:+1-555-0123"
-                    className="hover:text-foreground transition-colors"
-                  >
-                    +1 (555) 012-3456
-                  </a>
-                </div>
-              </div>
             </div>
 
             {/* Social Links */}
