@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Settings, User, Bell, Shield, Palette } from "lucide-react";
+import { Settings, User, Bell, Shield, Palette, Home } from "lucide-react";
 
 export default async function SettingsPage() {
   try {
@@ -53,6 +53,14 @@ export default async function SettingsPage() {
                   <Palette className="h-4 w-4 mr-2" />
                   <span className="text-sm">Appearance</span>
                 </div>
+                <Separator className="my-3" />
+                <a 
+                  href="/" 
+                  className="flex items-center p-2 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Home className="h-4 w-4 mr-2" />
+                  <span className="text-sm">Back to Home</span>
+                </a>
               </CardContent>
             </Card>
           </div>

@@ -19,7 +19,7 @@ export function Layout({
   showFooter = true,
 }: LayoutProps) {
   return (
-    <div className={cn("min-h-screen flex flex-col", className)}>
+    <div className={cn("min-h-screen flex flex-col bg-background text-foreground", className)}>
       {showNavigation && <Navigation />}
       <main className="flex-1">{children}</main>
       {showFooter && <Footer />}

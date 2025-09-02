@@ -19,8 +19,8 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 1,
 
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 2 : undefined,
+  /* Opt out of parallel tests on CI and limit workers to prevent rate limiting */
+  workers: process.env.CI ? 1 : 2, // Reduced workers to prevent API rate limits
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
@@ -48,6 +48,11 @@ export default defineConfig({
 
     /* Record video on failure */
     video: "retain-on-failure",
+
+    /* Rate limiting and performance settings */
+    launchOptions: {
+      slowMo: process.env.CI ? 100 : 50, // Add delay between actions to prevent rate limits
+    },
 
     /* Extended timeouts for complex workflows */
     actionTimeout: 45000,
