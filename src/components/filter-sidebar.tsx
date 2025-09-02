@@ -204,7 +204,10 @@ export function FilterSidebar({
         onOpenChange={() => toggleSection("search")}
       >
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full justify-between p-2 h-auto hover:bg-muted/50 rounded-md transition-colors">
+          <Button
+            variant="ghost"
+            className="w-full justify-between p-2 h-auto hover:bg-muted/50 rounded-md transition-colors"
+          >
             <span className="font-medium">Search</span>
             {openSections.search ? (
               <ChevronUp className="h-4 w-4 transition-transform" />
@@ -246,7 +249,10 @@ export function FilterSidebar({
         onOpenChange={() => toggleSection("location")}
       >
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full justify-between p-2 h-auto hover:bg-muted/50 rounded-md transition-colors">
+          <Button
+            variant="ghost"
+            className="w-full justify-between p-2 h-auto hover:bg-muted/50 rounded-md transition-colors"
+          >
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               <span className="font-medium">Location & Type</span>
@@ -320,7 +326,10 @@ export function FilterSidebar({
         onOpenChange={() => toggleSection("cost")}
       >
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full justify-between p-2 h-auto hover:bg-muted/50 rounded-md transition-colors">
+          <Button
+            variant="ghost"
+            className="w-full justify-between p-2 h-auto hover:bg-muted/50 rounded-md transition-colors"
+          >
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
               <span className="font-medium">Cost & Internet</span>
@@ -386,7 +395,10 @@ export function FilterSidebar({
         onOpenChange={() => toggleSection("ratings")}
       >
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full justify-between p-2 h-auto hover:bg-muted/50 rounded-md transition-colors">
+          <Button
+            variant="ghost"
+            className="w-full justify-between p-2 h-auto hover:bg-muted/50 rounded-md transition-colors"
+          >
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4" />
               <span className="font-medium">Ratings</span>
@@ -452,7 +464,10 @@ export function FilterSidebar({
         onOpenChange={() => toggleSection("sorting")}
       >
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full justify-between p-2 h-auto hover:bg-muted/50 rounded-md transition-colors">
+          <Button
+            variant="ghost"
+            className="w-full justify-between p-2 h-auto hover:bg-muted/50 rounded-md transition-colors"
+          >
             <span className="font-medium">Sort By</span>
             {openSections.sorting ? (
               <ChevronUp className="h-4 w-4 transition-transform" />

@@ -66,7 +66,10 @@ export function Navigation({ className }: NavigationProps) {
                 </span>
                 <div className="flex items-center space-x-1">
                   <Button variant="ghost" size="sm" asChild>
-                    <Link href="/profile" className="flex items-center space-x-1">
+                    <Link
+                      href="/profile"
+                      className="flex items-center space-x-1"
+                    >
                       <User className="h-4 w-4" />
                       <span className="hidden sm:inline">Profile</span>
                     </Link>

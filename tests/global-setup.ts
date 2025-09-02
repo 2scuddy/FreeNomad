@@ -18,7 +18,7 @@ async function globalSetup() {
     simulateLatency: true,
     latencyRange: [50, 200], // Reduced latency for tests
     simulateErrors: false, // Disable errors in global setup
-    errorRate: 0
+    errorRate: 0,
   });
   console.log("🎭 API mock manager initialized");
 

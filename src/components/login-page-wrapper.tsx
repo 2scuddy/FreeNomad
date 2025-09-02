@@ -87,7 +87,10 @@ function LoginPageContent() {
         console.error("Sign-in error:", result.error);
         // Provide more specific error messages
         if (result.error === "CredentialsSignin") {
-          setErrors({ email: "Invalid email or password. Please check your credentials and try again." });
+          setErrors({
+            email:
+              "Invalid email or password. Please check your credentials and try again.",
+          });
         } else {
           setErrors({ email: `Authentication failed: ${result.error}` });
         }
@@ -100,15 +103,24 @@ function LoginPageContent() {
           router.refresh();
         } else {
           console.error("Session not found after successful sign-in");
-          setErrors({ email: "Authentication succeeded but session creation failed. Please try again." });
+          setErrors({
+            email:
+              "Authentication succeeded but session creation failed. Please try again.",
+          });
         }
       } else {
         console.error("Unexpected sign-in result:", result);
-        setErrors({ email: "An unexpected error occurred during sign-in. Please try again." });
+        setErrors({
+          email:
+            "An unexpected error occurred during sign-in. Please try again.",
+        });
       }
     } catch (error) {
       console.error("Login error:", error);
-      setErrors({ email: "A network or server error occurred. Please check your connection and try again." });
+      setErrors({
+        email:
+          "A network or server error occurred. Please check your connection and try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -165,9 +177,12 @@ function LoginPageContent() {
             {process.env.NODE_ENV === "development" && (
               <Alert>
                 <AlertDescription className="text-sm">
-                  <strong>Test Accounts:</strong><br />
-                  Admin: admin@freenomad.com<br />
-                  User: sarah.nomad@example.com<br />
+                  <strong>Test Accounts:</strong>
+                  <br />
+                  Admin: admin@freenomad.com
+                  <br />
+                  User: sarah.nomad@example.com
+                  <br />
                   Password: Password123!
                 </AlertDescription>
               </Alert>
@@ -240,9 +255,9 @@ function LoginPageContent() {
               </div>
 
               {/* Submit Button */}
-              <Button 
-                type="submit" 
-                className="w-full h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200" 
+              <Button
+                type="submit"
+                className="w-full h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -270,9 +285,9 @@ function LoginPageContent() {
 
             {/* OAuth Buttons - Placeholder for future implementation */}
             <div className="grid grid-cols-2 gap-3">
-              <Button 
-                variant="outline" 
-                disabled 
+              <Button
+                variant="outline"
+                disabled
                 className="w-full h-11 font-medium border-2 hover:bg-gray-50 transition-colors duration-200"
               >
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -295,9 +310,9 @@ function LoginPageContent() {
                 </svg>
                 Google
               </Button>
-              <Button 
-                variant="outline" 
-                disabled 
+              <Button
+                variant="outline"
+                disabled
                 className="w-full h-11 font-medium border-2 hover:bg-gray-50 transition-colors duration-200"
               >
                 <svg

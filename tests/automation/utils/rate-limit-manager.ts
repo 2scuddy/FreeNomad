@@ -3,7 +3,7 @@
  * Prevents API rate limit violations while maintaining test coverage
  */
 
-import { Page } from '@playwright/test';
+import { Page } from "@playwright/test";
 
 interface RateLimitConfig {
   maxRequestsPerMinute: number;
@@ -33,14 +33,14 @@ export class RateLimitManager {
   private cache: Map<string, CacheEntry> = new Map();
   private pendingRequests: Map<string, Promise<any>> = new Map();
   private lastRequestTime: number = 0;
-  
+
   private readonly config: RateLimitConfig = {
     maxRequestsPerMinute: 30, // Conservative limit
     delayBetweenRequests: 2000, // 2 seconds between requests
     burstLimit: 5, // Max 5 requests in quick succession
     cooldownPeriod: 10000, // 10 seconds cooldown after burst
     retryAttempts: 3,
-    backoffMultiplier: 1.5
+    backoffMultiplier: 1.5,
   };
 
   private constructor() {
@@ -66,7 +66,7 @@ export class RateLimitManager {
     options: {
       cacheTtl?: number;
       skipCache?: boolean;
-      priority?: 'high' | 'medium' | 'low';
+      priority?: "high" | "medium" | "low";
       endpoint?: string;
       method?: string;
     } = {}
@@ -74,9 +74,9 @@ export class RateLimitManager {
     const {
       cacheTtl = 300000, // 5 minutes default
       skipCache = false,
-      priority = 'medium',
-      endpoint = 'unknown',
-      method = 'GET'
+      priority = "medium",
+      endpoint = "unknown",
+      method = "GET",
     } = options;
 
     // Check cache first (unless skipped)
@@ -104,17 +104,17 @@ export class RateLimitManager {
       method,
       requestKey
     );
-    
+
     this.pendingRequests.set(requestKey, requestPromise);
 
     try {
       const result = await requestPromise;
-      
+
       // Cache successful results
       if (!skipCache) {
         this.setCache(requestKey, result, cacheTtl);
       }
-      
+
       return result;
     } finally {
       this.pendingRequests.delete(requestKey);
@@ -124,7 +124,9 @@ export class RateLimitManager {
   /**
    * Apply rate limiting based on current request patterns
    */
-  private async applyRateLimit(priority: 'high' | 'medium' | 'low'): Promise<void> {
+  private async applyRateLimit(
+    priority: "high" | "medium" | "low"
+  ): Promise<void> {
     const now = Date.now();
     const recentRequests = this.getRecentRequests(60000); // Last minute
     const veryRecentRequests = this.getRecentRequests(10000); // Last 10 seconds
@@ -139,17 +141,21 @@ export class RateLimitManager {
 
     // Check burst limit
     if (veryRecentRequests.length >= this.config.burstLimit) {
-      console.log(`🚦 Burst limit reached, cooling down for ${this.config.cooldownPeriod}ms`);
+      console.log(
+        `🚦 Burst limit reached, cooling down for ${this.config.cooldownPeriod}ms`
+      );
       await this.delay(this.config.cooldownPeriod);
     }
 
     // Apply minimum delay between requests
     const timeSinceLastRequest = now - this.lastRequestTime;
     const minDelay = this.getMinDelayForPriority(priority);
-    
+
     if (timeSinceLastRequest < minDelay) {
       const waitTime = minDelay - timeSinceLastRequest;
-      console.log(`⏳ Applying ${waitTime}ms delay for ${priority} priority request`);
+      console.log(
+        `⏳ Applying ${waitTime}ms delay for ${priority} priority request`
+      );
       await this.delay(waitTime);
     }
 
@@ -166,31 +172,35 @@ export class RateLimitManager {
     requestKey: string
   ): Promise<T> {
     let lastError: Error | null = null;
-    
+
     for (let attempt = 1; attempt <= this.config.retryAttempts; attempt++) {
       try {
-        console.log(`🔄 Executing request ${requestKey} (attempt ${attempt}/${this.config.retryAttempts})`);
-        
+        console.log(
+          `🔄 Executing request ${requestKey} (attempt ${attempt}/${this.config.retryAttempts})`
+        );
+
         const result = await requestFn();
-        
+
         // Log successful request
         this.logRequest(endpoint, method, true);
-        
+
         return result;
       } catch (error) {
         lastError = error as Error;
-        
+
         // Log failed request
         this.logRequest(endpoint, method, false);
-        
+
         // Check if it's a rate limit error
         if (this.isRateLimitError(error)) {
           const backoffDelay = this.calculateBackoffDelay(attempt);
-          console.log(`🚫 Rate limit detected, backing off for ${backoffDelay}ms`);
+          console.log(
+            `🚫 Rate limit detected, backing off for ${backoffDelay}ms`
+          );
           await this.delay(backoffDelay);
           continue;
         }
-        
+
         // For non-rate-limit errors, apply standard backoff
         if (attempt < this.config.retryAttempts) {
           const backoffDelay = this.calculateBackoffDelay(attempt);
@@ -199,8 +209,11 @@ export class RateLimitManager {
         }
       }
     }
-    
-    throw lastError || new Error(`Request failed after ${this.config.retryAttempts} attempts`);
+
+    throw (
+      lastError ||
+      new Error(`Request failed after ${this.config.retryAttempts} attempts`)
+    );
   }
 
   /**
@@ -208,17 +221,17 @@ export class RateLimitManager {
    */
   private isRateLimitError(error: any): boolean {
     if (!error) return false;
-    
-    const errorMessage = error.message?.toLowerCase() || '';
+
+    const errorMessage = error.message?.toLowerCase() || "";
     const errorStatus = error.status || error.response?.status;
-    
+
     return (
       errorStatus === 429 ||
       errorStatus === 503 ||
-      errorMessage.includes('rate limit') ||
-      errorMessage.includes('too many requests') ||
-      errorMessage.includes('quota exceeded') ||
-      errorMessage.includes('throttled')
+      errorMessage.includes("rate limit") ||
+      errorMessage.includes("too many requests") ||
+      errorMessage.includes("quota exceeded") ||
+      errorMessage.includes("throttled")
     );
   }
 
@@ -236,13 +249,13 @@ export class RateLimitManager {
   /**
    * Get minimum delay based on priority
    */
-  private getMinDelayForPriority(priority: 'high' | 'medium' | 'low'): number {
+  private getMinDelayForPriority(priority: "high" | "medium" | "low"): number {
     switch (priority) {
-      case 'high':
+      case "high":
         return this.config.delayBetweenRequests * 0.5; // 1 second
-      case 'medium':
+      case "medium":
         return this.config.delayBetweenRequests; // 2 seconds
-      case 'low':
+      case "low":
         return this.config.delayBetweenRequests * 1.5; // 3 seconds
       default:
         return this.config.delayBetweenRequests;
@@ -255,12 +268,12 @@ export class RateLimitManager {
   private getFromCache(key: string): any | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
-    
+
     if (Date.now() > entry.timestamp + entry.ttl) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return entry.data;
   }
 
@@ -268,7 +281,7 @@ export class RateLimitManager {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      ttl
+      ttl,
     });
   }
 
@@ -289,7 +302,7 @@ export class RateLimitManager {
       timestamp: Date.now(),
       endpoint,
       method,
-      success
+      success,
     });
   }
 
@@ -321,12 +334,15 @@ export class RateLimitManager {
   } {
     const recentRequests = this.getRecentRequests(60000);
     const successfulRequests = recentRequests.filter(r => r.success).length;
-    
+
     return {
       recentRequests: recentRequests.length,
       cacheSize: this.cache.size,
-      successRate: recentRequests.length > 0 ? successfulRequests / recentRequests.length : 1,
-      pendingRequests: this.pendingRequests.size
+      successRate:
+        recentRequests.length > 0
+          ? successfulRequests / recentRequests.length
+          : 1,
+      pendingRequests: this.pendingRequests.size,
     };
   }
 
@@ -338,7 +354,7 @@ export class RateLimitManager {
     this.pendingRequests.clear();
     this.requestLog = [];
     this.lastRequestTime = 0;
-    console.log('🔄 Rate limit manager reset');
+    console.log("🔄 Rate limit manager reset");
   }
 }
 
@@ -355,13 +371,17 @@ export class PlaywrightRateLimitUtils {
     page: Page,
     url: string,
     options: {
-      priority?: 'high' | 'medium' | 'low';
-      waitUntil?: 'load' | 'domcontentloaded' | 'networkidle';
+      priority?: "high" | "medium" | "low";
+      waitUntil?: "load" | "domcontentloaded" | "networkidle";
       timeout?: number;
     } = {}
   ): Promise<void> {
-    const { priority = 'medium', waitUntil = 'networkidle', timeout = 30000 } = options;
-    
+    const {
+      priority = "medium",
+      waitUntil = "networkidle",
+      timeout = 30000,
+    } = options;
+
     await this.rateLimitManager.executeRequest(
       `navigate:${url}`,
       async () => {
@@ -371,8 +391,8 @@ export class PlaywrightRateLimitUtils {
       {
         priority,
         endpoint: url,
-        method: 'GET',
-        skipCache: true // Navigation shouldn't be cached
+        method: "GET",
+        skipCache: true, // Navigation shouldn't be cached
       }
     );
   }
@@ -387,16 +407,16 @@ export class PlaywrightRateLimitUtils {
       method?: string;
       body?: any;
       headers?: Record<string, string>;
-      priority?: 'high' | 'medium' | 'low';
+      priority?: "high" | "medium" | "low";
       cacheTtl?: number;
     } = {}
   ): Promise<T> {
     const {
-      method = 'GET',
+      method = "GET",
       body,
       headers = {},
-      priority = 'medium',
-      cacheTtl = 300000
+      priority = "medium",
+      cacheTtl = 300000,
     } = options;
 
     const requestKey = `api:${method}:${url}:${JSON.stringify(body || {})}`;
@@ -409,28 +429,30 @@ export class PlaywrightRateLimitUtils {
             const response = await fetch(url, {
               method,
               headers: {
-                'Content-Type': 'application/json',
-                ...headers
+                "Content-Type": "application/json",
+                ...headers,
               },
-              body: body ? JSON.stringify(body) : undefined
+              body: body ? JSON.stringify(body) : undefined,
             });
-            
+
             if (!response.ok) {
-              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`
+              );
             }
-            
+
             return await response.json();
           },
           { url, method, body, headers }
         );
-        
+
         return response;
       },
       {
         priority,
         endpoint: url,
         method,
-        cacheTtl: method === 'GET' ? cacheTtl : 0 // Only cache GET requests
+        cacheTtl: method === "GET" ? cacheTtl : 0, // Only cache GET requests
       }
     );
   }
@@ -447,10 +469,14 @@ export class PlaywrightRateLimitUtils {
       description?: string;
     } = {}
   ): Promise<void> {
-    const { timeout = 30000, interval = 1000, description = 'condition' } = options;
-    
+    const {
+      timeout = 30000,
+      interval = 1000,
+      description = "condition",
+    } = options;
+
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < timeout) {
       try {
         if (await condition()) {
@@ -459,11 +485,11 @@ export class PlaywrightRateLimitUtils {
       } catch (error) {
         console.log(`⚠️ Error checking ${description}:`, error);
       }
-      
+
       // Apply rate limiting to polling
       await new Promise(resolve => setTimeout(resolve, interval));
     }
-    
+
     throw new Error(`Timeout waiting for ${description} after ${timeout}ms`);
   }
 

@@ -336,9 +336,9 @@ export default function RegisterPage() {
               </div>
 
               {/* Submit Button */}
-              <Button 
-                type="submit" 
-                className="w-full h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200" 
+              <Button
+                type="submit"
+                className="w-full h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
                 disabled={isLoading}
               >
                 {isLoading ? (

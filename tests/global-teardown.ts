@@ -7,7 +7,7 @@ async function globalTeardown() {
   // Get final statistics before cleanup
   const rateLimitManager = RateLimitManager.getInstance();
   const apiMockManager = ApiMockManager.getInstance();
-  
+
   console.log("📊 Final rate limit stats:", rateLimitManager.getStats());
   console.log("🎭 Final mock stats:", apiMockManager.getStats());
 

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { requireAuth } from "@/lib/auth";
 import { UserSettingsForm } from "@/components/user-settings-form";
 import {
@@ -54,13 +55,13 @@ export default async function SettingsPage() {
                   <span className="text-sm">Appearance</span>
                 </div>
                 <Separator className="my-3" />
-                <a 
-                  href="/" 
+                <Link
+                  href="/"
                   className="flex items-center p-2 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
                   <Home className="h-4 w-4 mr-2" />
                   <span className="text-sm">Back to Home</span>
-                </a>
+                </Link>
               </CardContent>
             </Card>
           </div>
