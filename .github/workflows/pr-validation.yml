@@ -1,0 +1,199 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [main, development, staging]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# Strict permissions for PR validation
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  statuses: write
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  # Pre-validation checks
+  pre-validation:
+    name: Pre-validation Checks
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          fetch-depth: 0
+
+      - name: Check PR title format
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if ! echo "$PR_TITLE" | grep -qE '^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+'; then
+            echo "❌ PR title must follow conventional commit format: type(scope): description"
+            echo "Examples: feat: add user authentication, fix(api): resolve login issue"
+            exit 1
+          fi
+          echo "✅ PR title format is valid"
+
+      - name: Check for merge conflicts
+        run: |
+          git merge-tree $(git merge-base HEAD ${{ github.event.pull_request.base.sha }}) HEAD ${{ github.event.pull_request.base.sha }} | grep -q "<<<<<<< " && {
+            echo "❌ Merge conflicts detected. Please resolve conflicts before merging."
+            exit 1
+          } || {
+            echo "✅ No merge conflicts detected"
+          }
+
+  # Comprehensive validation
+  validation:
+    name: Comprehensive Validation
+    runs-on: ubuntu-latest
+    needs: pre-validation
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: freenomad_test
+          POSTGRES_HOST_AUTH_METHOD: md5
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
+        run: |
+          npx prisma generate
+          npx prisma db push
+
+      - name: Run pre-commit validation script
+        run: |
+          chmod +x scripts/pre-commit-validation.sh
+          ./scripts/pre-commit-validation.sh
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
+          NEXTAUTH_SECRET: test-secret-fallback
+          NEXTAUTH_URL: http://localhost:3000
+          NODE_ENV: test
+
+      - name: Check for large files
+        run: |
+          large_files=$(find . -name "*.js" -o -name "*.ts" -o -name "*.tsx" -o -name "*.jsx" | xargs ls -la | awk '$5 > 500000 {print $9, $5}' || true)
+          if [ -n "$large_files" ]; then
+            echo "❌ Found files larger than 500KB:"
+            echo "$large_files"
+            echo "Please optimize or split large files"
+            exit 1
+          fi
+          echo "✅ No large files detected"
+
+      - name: Check bundle size
+        run: |
+          npm run build
+          # Check if build output is reasonable (adjust limits as needed)
+          build_size=$(du -sh .next | cut -f1)
+          echo "Build size: $build_size"
+
+      - name: Run E2E smoke tests
+        run: |
+          # Install Playwright browsers
+          npx playwright install --with-deps chromium
+          # Run critical path tests only for PR validation
+          npm run test:e2e -- --grep "@smoke"
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
+          NEXTAUTH_SECRET: test-secret-fallback
+          NEXTAUTH_URL: http://localhost:3000
+
+      - name: Comment PR with validation results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context } = require('@actions/github');
+            const jobStatus = '${{ job.status }}';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            let message;
+            if (jobStatus === 'success') {
+              message = `✅ **PR Validation Passed**\n\nAll validation checks completed successfully!\n\n[View Details](${runUrl})`;
+            } else {
+              message = `❌ **PR Validation Failed**\n\nSome validation checks failed. Please review and fix the issues.\n\n[View Details](${runUrl})`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
+
+  # Code quality analysis
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    needs: pre-validation
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run complexity analysis
+        run: |
+          # Check for overly complex functions (basic check)
+          echo "Checking for complex functions..."
+          complex_files=$(grep -r "function\|const.*=>" src/ --include="*.ts" --include="*.tsx" | wc -l)
+          echo "Total functions found: $complex_files"
+
+      - name: Check test coverage
+        run: |
+          npm run test:coverage
+          # Parse coverage and fail if below threshold
+          coverage=$(npm run test:coverage 2>&1 | grep "All files" | awk '{print $10}' | sed 's/%//' || echo "0")
+          echo "Test coverage: ${coverage}%"
+          if [ "$coverage" -lt "70" ]; then
+            echo "❌ Test coverage is below 70%: ${coverage}%"
+            exit 1
+          fi
+          echo "✅ Test coverage is acceptable: ${coverage}%"
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
+
+      - name: Check for security vulnerabilities
+        run: |
+          npm audit --audit-level high
+          echo "✅ No high-severity vulnerabilities found"

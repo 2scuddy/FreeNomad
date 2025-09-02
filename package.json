@@ -139,11 +139,19 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --fix --max-warnings 0",
+      "prettier --write",
+      "git add"
     ],
     "*.{json,css,md}": [
-      "prettier --write"
+      "prettier --write",
+      "git add"
+    ],
+    "*.{ts,tsx}": [
+      "bash -c 'npm run type-check'"
+    ],
+    "package*.json": [
+      "npm audit --audit-level moderate"
     ]
   }
 }

@@ -84,18 +84,43 @@ function LoginPageContent() {
       });
 
       if (result?.error) {
-        setErrors({ email: "Invalid email or password" });
+        console.error("Sign-in error:", result.error);
+        // Provide more specific error messages
+        if (result.error === "CredentialsSignin") {
+          setErrors({
+            email:
+              "Invalid email or password. Please check your credentials and try again.",
+          });
+        } else {
+          setErrors({ email: `Authentication failed: ${result.error}` });
+        }
       } else if (result?.ok) {
         // Get the updated session
         const session = await getSession();
         if (session) {
+          console.log("Sign-in successful, redirecting to:", callbackUrl);
           router.push(callbackUrl);
           router.refresh();
+        } else {
+          console.error("Session not found after successful sign-in");
+          setErrors({
+            email:
+              "Authentication succeeded but session creation failed. Please try again.",
+          });
         }
+      } else {
+        console.error("Unexpected sign-in result:", result);
+        setErrors({
+          email:
+            "An unexpected error occurred during sign-in. Please try again.",
+        });
       }
     } catch (error) {
       console.error("Login error:", error);
-      setErrors({ email: "An error occurred during login" });
+      setErrors({
+        email:
+          "A network or server error occurred. Please check your connection and try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +142,7 @@ function LoginPageContent() {
   const errorMessage = getErrorMessage();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center auth-page px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-6">
         {/* Back Button */}
         <div className="flex items-center">
@@ -145,6 +170,21 @@ function LoginPageContent() {
             {errorMessage && (
               <Alert variant="destructive">
                 <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Development Helper */}
+            {process.env.NODE_ENV === "development" && (
+              <Alert>
+                <AlertDescription className="text-sm">
+                  <strong>Test Accounts:</strong>
+                  <br />
+                  Admin: admin@freenomad.com
+                  <br />
+                  User: sarah.nomad@example.com
+                  <br />
+                  Password: Password123!
+                </AlertDescription>
               </Alert>
             )}
 
@@ -215,7 +255,11 @@ function LoginPageContent() {
               </div>
 
               {/* Submit Button */}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -241,7 +285,11 @@ function LoginPageContent() {
 
             {/* OAuth Buttons - Placeholder for future implementation */}
             <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" disabled className="w-full">
+              <Button
+                variant="outline"
+                disabled
+                className="w-full h-11 font-medium border-2 hover:bg-gray-50 transition-colors duration-200"
+              >
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -262,7 +310,11 @@ function LoginPageContent() {
                 </svg>
                 Google
               </Button>
-              <Button variant="outline" disabled className="w-full">
+              <Button
+                variant="outline"
+                disabled
+                className="w-full h-11 font-medium border-2 hover:bg-gray-50 transition-colors duration-200"
+              >
                 <svg
                   className="mr-2 h-4 w-4"
                   fill="currentColor"

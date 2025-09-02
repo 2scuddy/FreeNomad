@@ -171,114 +171,205 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Skip to main content link for screen readers */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50"
+      >
+        Skip to main content
+      </a>
+
       {/* Header */}
-      <div className="border-b">
+      <header className="border-b" role="banner">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl font-bold" id="dashboard-title">
+                Admin Dashboard
+              </h1>
+              <p
+                className="text-muted-foreground"
+                aria-describedby="dashboard-title"
+              >
                 Welcome back, {user.name || user.email}
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <Badge variant="default">
-                <Shield className="h-3 w-3 mr-1" />
+            <div
+              className="flex items-center gap-4"
+              role="group"
+              aria-label="Admin actions"
+            >
+              <Badge variant="default" aria-label="Current user role: Admin">
+                <Shield className="h-3 w-3 mr-1" aria-hidden="true" />
                 Admin
               </Badge>
               <Link href="/">
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label="View public website"
+                >
                   View Site
                 </Button>
               </Link>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <main
+        className="container mx-auto px-4 py-8"
+        id="main-content"
+        role="main"
+      >
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
           className="space-y-6"
+          aria-label="Admin dashboard sections"
         >
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="cities">Cities</TabsTrigger>
-            <TabsTrigger value="bulk-upload">Bulk Upload</TabsTrigger>
+          <TabsList
+            className="grid w-full grid-cols-5"
+            role="tablist"
+            aria-label="Dashboard navigation"
+          >
+            <TabsTrigger value="overview" aria-controls="overview-panel">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="analytics" aria-controls="analytics-panel">
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="users" aria-controls="users-panel">
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="cities" aria-controls="cities-panel">
+              Cities
+            </TabsTrigger>
+            <TabsTrigger value="bulk-upload" aria-controls="bulk-upload-panel">
+              Bulk Upload
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent
+            value="overview"
+            className="space-y-6"
+            id="overview-panel"
+            role="tabpanel"
+            aria-labelledby="overview-tab"
+          >
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Total Users
-                      </p>
-                      <p className="text-2xl font-bold">
-                        {stats.overview.totalUsers}
-                      </p>
+            <section aria-labelledby="stats-heading">
+              <h2 id="stats-heading" className="sr-only">
+                Dashboard Statistics
+              </h2>
+              <div
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+                role="group"
+                aria-label="Key metrics"
+              >
+                <Card role="article" aria-labelledby="total-users-stat">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p
+                          className="text-sm font-medium text-muted-foreground"
+                          id="total-users-stat"
+                        >
+                          Total Users
+                        </p>
+                        <p
+                          className="text-2xl font-bold"
+                          aria-describedby="total-users-stat"
+                        >
+                          {stats.overview.totalUsers.toLocaleString()}
+                        </p>
+                      </div>
+                      <Users
+                        className="h-8 w-8 text-blue-500"
+                        aria-hidden="true"
+                      />
                     </div>
-                    <Users className="h-8 w-8 text-blue-500" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Total Cities
-                      </p>
-                      <p className="text-2xl font-bold">
-                        {stats.overview.totalCities}
-                      </p>
+                <Card role="article" aria-labelledby="total-cities-stat">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p
+                          className="text-sm font-medium text-muted-foreground"
+                          id="total-cities-stat"
+                        >
+                          Total Cities
+                        </p>
+                        <p
+                          className="text-2xl font-bold"
+                          aria-describedby="total-cities-stat"
+                        >
+                          {stats.overview.totalCities.toLocaleString()}
+                        </p>
+                      </div>
+                      <MapPin
+                        className="h-8 w-8 text-green-500"
+                        aria-hidden="true"
+                      />
                     </div>
-                    <MapPin className="h-8 w-8 text-green-500" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Total Reviews
-                      </p>
-                      <p className="text-2xl font-bold">
-                        {stats.overview.totalReviews}
-                      </p>
+                <Card role="article" aria-labelledby="total-reviews-stat">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p
+                          className="text-sm font-medium text-muted-foreground"
+                          id="total-reviews-stat"
+                        >
+                          Total Reviews
+                        </p>
+                        <p
+                          className="text-2xl font-bold"
+                          aria-describedby="total-reviews-stat"
+                        >
+                          {stats.overview.totalReviews.toLocaleString()}
+                        </p>
+                      </div>
+                      <MessageSquare
+                        className="h-8 w-8 text-purple-500"
+                        aria-hidden="true"
+                      />
                     </div>
-                    <MessageSquare className="h-8 w-8 text-purple-500" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Average Rating
-                      </p>
-                      <p className="text-2xl font-bold">
-                        {formatRating(stats.overview.averageRating)}
-                      </p>
+                <Card role="article" aria-labelledby="average-rating-stat">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p
+                          className="text-sm font-medium text-muted-foreground"
+                          id="average-rating-stat"
+                        >
+                          Average Rating
+                        </p>
+                        <p
+                          className="text-2xl font-bold"
+                          aria-describedby="average-rating-stat"
+                        >
+                          {formatRating(stats.overview.averageRating)} out of 5
+                        </p>
+                      </div>
+                      <Star
+                        className="h-8 w-8 text-yellow-500"
+                        aria-hidden="true"
+                      />
                     </div>
-                    <Star className="h-8 w-8 text-yellow-500" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </section>
 
             {/* Recent Activity */}
             <div className="grid lg:grid-cols-2 gap-6">
@@ -626,7 +717,7 @@ export function AdminDashboard({ user, stats }: AdminDashboardProps) {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
     </div>
   );
 }

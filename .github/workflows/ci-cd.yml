@@ -125,20 +125,32 @@ jobs:
           npx prisma generate
           npx prisma db push
 
-      - name: Run ESLint
-        run: npm run lint:check
-        continue-on-error: true
+      - name: Run ESLint (Strict)
+        run: npm run lint:check -- --max-warnings 0
+        continue-on-error: false
         timeout-minutes: 10
 
-      - name: Run Prettier check
+      - name: Run Prettier check (Strict)
         run: npm run format:check
-        continue-on-error: true
+        continue-on-error: false
         timeout-minutes: 5
 
-      - name: Run TypeScript check
+      - name: Run TypeScript check (Strict)
         run: npm run type-check
         continue-on-error: false
         timeout-minutes: 10
+
+      - name: Security audit
+        run: npm audit --audit-level moderate
+        continue-on-error: false
+        timeout-minutes: 5
+
+      - name: Build verification
+        run: npm run build
+        continue-on-error: false
+        timeout-minutes: 15
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freenomad_test
 
       - name: Run tests
         env:

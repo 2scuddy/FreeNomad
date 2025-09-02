@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { MapPin, User, LogOut, Settings } from "lucide-react";
+import { MapPin, User, LogOut, Settings, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavigationProps {
@@ -40,7 +40,7 @@ export function Navigation({ className }: NavigationProps) {
           </Link>
 
           {/* Navigation Links */}
-          <div className="flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-6">
             {navigationItems.map(item => (
               <Link
                 key={item.href}
@@ -60,34 +60,51 @@ export function Navigation({ className }: NavigationProps) {
                 <div className="h-9 w-16 animate-pulse rounded-md bg-muted" />
               </div>
             ) : session ? (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-muted-foreground">
+              <div className="flex items-center space-x-2">
+                <span className="hidden lg:block text-sm text-muted-foreground truncate max-w-32">
                   Welcome, {session.user?.name || session.user?.email}
                 </span>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/profile" className="flex items-center space-x-1">
-                    <User className="h-4 w-4" />
-                    <span>Profile</span>
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link
-                    href="/settings"
-                    className="flex items-center space-x-1"
+                <div className="flex items-center space-x-1">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link
+                      href="/profile"
+                      className="flex items-center space-x-1"
+                    >
+                      <User className="h-4 w-4" />
+                      <span className="hidden sm:inline">Profile</span>
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link
+                      href="/settings"
+                      className="flex items-center space-x-1"
+                    >
+                      <Settings className="h-4 w-4" />
+                      <span className="hidden sm:inline">Settings</span>
+                    </Link>
+                  </Button>
+                  {/* Show Admin Dashboard link for admin users */}
+                  {(session.user as any)?.role === "ADMIN" && (
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link
+                        href="/admin"
+                        className="flex items-center space-x-1 text-blue-600 hover:text-blue-600 hover:bg-blue-50"
+                      >
+                        <Shield className="h-4 w-4" />
+                        <span className="hidden sm:inline">Admin</span>
+                      </Link>
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSignOut}
+                    className="flex items-center space-x-1 text-red-600 hover:text-red-600 hover:bg-red-50"
                   >
-                    <Settings className="h-4 w-4" />
-                    <span>Settings</span>
-                  </Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="flex items-center space-x-1 text-red-600 hover:text-red-600"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
-                </Button>
+                    <LogOut className="h-4 w-4" />
+                    <span className="hidden sm:inline">Sign Out</span>
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="flex items-center space-x-2">

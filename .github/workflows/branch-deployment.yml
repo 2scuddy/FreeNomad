@@ -203,9 +203,9 @@ jobs:
           script: |
             const branch = '${{ github.head_ref }}';
             const environment = '${{ github.ref }}' === 'refs/heads/main' ? 'production' : 'preview';
-            
+
             const body = `✅ **Build Verification Passed**\n\n**Branch**: \`${branch}\`\n**Environment**: ${environment}\n**Status**: Ready for automatic Vercel deployment\n\n🚀 Vercel will automatically deploy this branch when merged.`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

@@ -1,0 +1,59 @@
+{
+  "timestamp": "2025-08-24T15:07:03.147Z",
+  "summary": {
+    "totalTests": 6,
+    "foundIssues": 3,
+    "notFound": 2,
+    "errors": 0
+  },
+  "findings": [
+    {
+      "test": "Filter Accordion",
+      "status": "Not Found",
+      "details": "No filter button found with any of the tested selectors",
+      "screenshot": "1-homepage-initial.png"
+    },
+    {
+      "test": "Auth Buttons Styling",
+      "status": "Found",
+      "details": "Auth page found at /auth/signin",
+      "buttonStyles": [],
+      "screenshot": "2-auth-page-auth/signin.png"
+    },
+    {
+      "test": "Color Consistency",
+      "status": "Documented",
+      "details": "Homepage colors captured",
+      "colors": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "color": "rgb(0, 0, 0)"
+      },
+      "screenshot": "3-homepage-colors.png"
+    },
+    {
+      "test": "Admin Dashboard Accessibility",
+      "status": "Tested",
+      "details": "Admin dashboard accessed and tested",
+      "accessibilityIssues": [],
+      "screenshot": "4-admin-dashboard.png"
+    },
+    {
+      "test": "Navigation Bar Alignment",
+      "status": "Not Found",
+      "details": "No navigation elements found",
+      "screenshot": null
+    },
+    {
+      "test": "Settings Page Navigation",
+      "status": "Found",
+      "details": "Settings page found at /settings",
+      "navigationOptions": {
+        "homeLinks": 0,
+        "breadcrumbs": 0,
+        "backButton": 0
+      },
+      "screenshot": "6-settings-page--settings.png"
+    }
+  ],
+  "screenshotDirectory": "/Users/raoufamimer/Desktop/FreeNomad/visual-testing-screenshots"
+}

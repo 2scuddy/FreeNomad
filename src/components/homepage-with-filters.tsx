@@ -184,9 +184,9 @@ export function HomepageWithFilters({ className }: HomepageWithFiltersProps) {
   };
 
   return (
-    <Layout className={className}>
+    <Layout className={cn("bg-background", className)}>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+      <section className="bg-gradient-to-br from-primary/10 via-background to-secondary/10 relative">
         <CityGridContainer>
           <div className="text-center space-y-6 py-12 lg:py-20">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
